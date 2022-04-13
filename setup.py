@@ -17,6 +17,7 @@ setup(name='qaf-python-automation',
       url='',
 
       long_description=readme,
+      long_description_content_type="text/markdown",
       maintainer_email='nishith.shah@infostretch.com',
 
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -29,27 +30,28 @@ setup(name='qaf-python-automation',
           'Development Status :: 4 - Beta',
 
           # Indicate who your project is intended for
-          'Intended Audience :: QE Automatin',
+          'Intended Audience :: QE Automation',
 
           'Natural Language :: English',
           'Operating System :: OS Independent',
 
+          'License :: OSI Approved :: MIT License',
           # Specify the Python versions you support here. In particular, ensure
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7'
+          'Programming Language :: Python :: 3'
+          'Topic :: Software Development :: Quality Assurance',
+          'Topic :: Software Development :: Testing',
       ],
 
       keywords='automation, python-selenium, python-automation, appium, python-appium',
       packages=find_packages(),
+      python_requires=">=3.6",
       package_data={
-          'infostretch.automation': ['config/*.ini']
+          'qaf.automation': ['config/*.ini']
       },
       install_requires=[
+          'selenium==3.14.1',
           'Appium-Python-Client==0.48',
           'behave==1.2.6',
-          'selenium==3.14.1',
           'PyHamcrest==1.9.0',
           'requests==2.18.4',
           'jmespath==1.0.0',
