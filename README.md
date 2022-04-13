@@ -6,6 +6,7 @@ The framework is built upon Python 3.x and integrates Behave, Webdriver and Appi
 ## Installation
 
     pip3 install git+https://{username}@bitbucket.org/is_corp/qaf-python-automation.git
+    pip3 install git+ssh://git@bitbucket.org:is_corp/qaf-python-automation.git
 
 Install forcefully over the existing version
 
@@ -42,9 +43,9 @@ driver.additional.capabilities | Specify multiple additional capabilities as map
 {0}.capabilities | Specify additional capability by name with this prefix that can applicable for specific driver. For example, chrome.capabilities.
 env.baseurl | Base URL of AUT to be used.
 env.resources | File or directory to load driver specific resources, for instance driver specific locators.
-wd.command.listeners | List of web driver command listeners (fully qualified class name that abstract infostretch.automation.ui.webdriver.abstract_listener.DriverListener) to be registered.
-we.command.listeners | List of web element command listeners (fully qualified class name that abstract infostretch.automation.ui.webdriver.abstract_listener.ElementListener) to be registered.
-ws.command.listeners | List of web service command listeners (fully qualified class name that abstract infostretch.automation.ws.rest.ws_listener.WsListener) to be registered.
+wd.command.listeners | List of web driver command listeners (fully qualified class name that abstract qaf.automation.ui.webdriver.abstract_listener.DriverListener) to be registered.
+we.command.listeners | List of web element command listeners (fully qualified class name that abstract qaf.automation.ui.webdriver.abstract_listener.ElementListener) to be registered.
+ws.command.listeners | List of web service command listeners (fully qualified class name that abstract qaf.automation.ws.rest.ws_listener.WsListener) to be registered.
 env.default.locale | Local name from loaded locals that need to treated as default local
 executable.path | Directory path where you can put executable file. For example, chromedriver, safaridriver, etc..
 testing.approach | e.g. behave, pytest

@@ -16,7 +16,7 @@ if CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'behave':
     from behave.runner_util import load_step_modules
     import os
 
-    import infostretch.automation.step_def as step_def_path
+    import qaf.automation.step_def as step_def_path
     step_def_path = str(os.path.abspath(step_def_path.__file__)).replace('/__init__.py', '')
 
     SUBSTEP_DIRS = [step_def_path]
