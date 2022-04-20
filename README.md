@@ -21,6 +21,19 @@ Install forcefully over the existing version
 * Rigid support of not having single point of control to manage iOS, Android and Web all locators
 * No Support of reporting provided in Behave BDD framework
 
+## Dependencies
+
+| Dependencies | Description |
+| --- | --- |
+| selenium | Web Automation Framework |
+| webdriver-manager | Automated Driver Manager |
+| appium | Mobile Automation Framework |
+| behave | Behavior-driven development |
+| PyTest | Test Framework |
+| PyHamcrest | Matcher Library |
+| jmespath | Json Query Language |
+| webdriver-manager | Automated Driver Manager |
+
 ## Technical Insight
 For Python automation, following are the tools details:
 
