@@ -5,8 +5,8 @@ The framework is built upon Python 3.x and integrates Behave, Webdriver and Appi
 
 ## Installation
 
-    pip3 install git+https://{username}@bitbucket.org/is_corp/qaf-python-automation.git
-    pip3 install git+ssh://git@bitbucket.org:is_corp/qaf-python-automation.git
+    pip3 install git+https://github.com/qmetry/qaf-python.git
+    pip3 install git+ssh://git@github.com:qmetry/qaf-python.git
 
 Install forcefully over the existing version
 
