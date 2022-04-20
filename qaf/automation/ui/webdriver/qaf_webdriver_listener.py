@@ -1,4 +1,4 @@
-#  Copyright (c) .2022 Infostretch Corporation
+#  Copyright (c) 2022 Infostretch Corporation
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@ import sys
 
 from qaf.automation.ui.webdriver.command_tracker import CommandTracker
 
-from qaf.automation.formatter.qaf_report.scenario.selenium_log import SeleniumLog, SeleniumLogStack
+from qaf.automation.formatter.qaf_report.scenario.command_log import CommandLog, CommandLogStack
 from qaf.automation.ui.webdriver.abstract_listener import DriverListener
 import logging
 
@@ -34,22 +34,22 @@ class QAFWebDriverListener(DriverListener):
     __logger.addHandler(__streaming_handler)
 
     def on_exception(self, driver, command_tracker: CommandTracker):
-        selenium_log = SeleniumLog()
+        selenium_log = CommandLog()
         selenium_log.commandName = command_tracker.command
         selenium_log.result = command_tracker.message
         selenium_log.args = command_tracker.parameters
-        SeleniumLogStack().add_selenium_log(selenium_log)
+        CommandLogStack().add_command_log(selenium_log)
         self.__logger.info(selenium_log.to_string())
 
     def after_command(self, driver, command_tracker: CommandTracker):
         if not is_command_excluded_from_logging(command_tracker.command):
-            selenium_log = SeleniumLog()
+            selenium_log = CommandLog()
             selenium_log.commandName = command_tracker.command
             selenium_log.result = 'OK' if (
                         command_tracker.response is None or 'status' not in command_tracker.response) else \
             command_tracker.response['status']
             selenium_log.args = command_tracker.parameters
-            SeleniumLogStack().add_selenium_log(selenium_log)
+            CommandLogStack().add_command_log(selenium_log)
             self.__logger.info(selenium_log.to_string())
 
     def before_command(self, driver, command_tracker: CommandTracker):

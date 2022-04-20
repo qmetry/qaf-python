@@ -1,4 +1,4 @@
-#  Copyright (c) .2022 Infostretch Corporation
+#  Copyright (c) 2022 Infostretch Corporation
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ from qaf.automation.formatter.qaf_report.scenario.scenario_meta_info import Scen
 from qaf.automation.formatter.qaf_report.scenario.scenario import Scenario
 from qaf.automation.formatter.qaf_report.feature.feature_overview import FeatureOverView
 from qaf.automation.formatter.qaf_report.execution_meta_info import ExecutionMetaInfo
-from qaf.automation.formatter.qaf_report.scenario.selenium_log import SeleniumLogStack
+from qaf.automation.formatter.qaf_report.scenario.command_log import CommandLogStack
 from qaf.automation.formatter.qaf_report.step.step import Step
 from qaf.automation.util.datetime_util import date_time, current_timestamp
 from qaf.automation.util.directory_util import create_directory
@@ -132,7 +132,7 @@ class BaseEnvironment:
 
         del self.obj_scenario_meta_info
         self.obj_scenario_meta_info = None
-        Scenario(file_name=scenario.name).seleniumLog = SeleniumLogStack().get_all_selenium_log()
+        Scenario(file_name=scenario.name).seleniumLog = CommandLogStack().get_all_command_log()
 
     def before_step(self, context, step):
         self.current_step = step

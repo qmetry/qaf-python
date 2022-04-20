@@ -1,4 +1,4 @@
-#  Copyright (c) .2022 Infostretch Corporation
+#  Copyright (c) 2022 Infostretch Corporation
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@ from collections import deque
 from qaf.automation.core.singleton import Singleton
 
 
-class SeleniumLog:
+class CommandLog:
     def __init__(self) -> None:
         self.commandName = ''
         self.args = {}
@@ -92,16 +92,16 @@ class SeleniumLog:
         return string
 
 
-class SeleniumLogStack(metaclass=Singleton):
+class CommandLogStack(metaclass=Singleton):
     def __init__(self) -> None:
-        self.__selenium_log_stack = deque()
+        self.__command_log_stack = deque()
 
-    def add_selenium_log(self, selenium_log: SeleniumLog) -> None:
-        self.__selenium_log_stack.append(selenium_log.to_json_dict())
+    def add_command_log(self, selenium_log: CommandLog) -> None:
+        self.__command_log_stack.append(selenium_log.to_json_dict())
 
-    def get_all_selenium_log(self) -> list:
+    def get_all_command_log(self) -> list:
         arr_selenium_log = []
-        while self.__selenium_log_stack:
-            selenium_log = self.__selenium_log_stack.popleft()
+        while self.__command_log_stack:
+            selenium_log = self.__command_log_stack.popleft()
             arr_selenium_log.append(selenium_log)
         return arr_selenium_log
