@@ -98,7 +98,7 @@ class BaseDriver:
 
     def __web_driver_manager(self, driver_name):
         driver_name = driver_name.replace('driver', '').replace('remote', '').lower()
-        driver_name_caps = str(driver_name).capitalize()
+        driver_name_caps = str(driver_name.replace('firefox', 'gecko')).capitalize()
         class_name = 'webdriver_manager.{driver_name}.{driver_name_caps}DriverManager'.format(driver_name=driver_name,
                                                                                               driver_name_caps=driver_name_caps)
         driver_path = load_class(class_name)().install()
