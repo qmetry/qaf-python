@@ -73,7 +73,7 @@ setup(name='qaf-python',
           'Appium-Python-Client==0.48',
           'behave==1.2.6',
           'PyHamcrest==1.9.0',
-          'requests==2.18.4',
+          'requests==2.20.0',
           'jmespath==1.0.0',
           'webdriver-manager==3.5.4'
       ],
