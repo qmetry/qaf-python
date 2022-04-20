@@ -26,15 +26,15 @@ try:
 except FileNotFoundError:
     readme = ""
 
-setup(name='qaf-python-automation',
+setup(name='qaf-python',
       version='1.0.0',
       description='This is Automation framework for Python developed by Infostretch',
       author='Nishith Shah',
       author_email='nishith.shah@infostretch.com',
-      license='[]',
+      license='MIT',
 
       # The project's main homepage.
-      url='',
+      url='https://github.com/qmetry/qaf-python',
 
       long_description=readme,
       long_description_content_type="text/markdown",
@@ -62,7 +62,7 @@ setup(name='qaf-python-automation',
           'Topic :: Software Development :: Testing',
       ],
 
-      keywords='automation, python-selenium, python-automation, appium, python-appium',
+      keywords='qaf, bdd, automation, python-selenium, python-automation, appium, python-appium',
       packages=find_packages(),
       python_requires=">=3.6",
       package_data={
