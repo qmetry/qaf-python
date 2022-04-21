@@ -98,7 +98,7 @@ class QAFWebDriver(RemoteWebDriver):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = 'Wait time out for ajax to complete'
-        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
+        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForAjax(jstoolkit), message
         )
 

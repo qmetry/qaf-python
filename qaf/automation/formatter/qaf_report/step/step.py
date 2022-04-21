@@ -69,7 +69,7 @@ class Step:
         self.obj_check_point = None
 
     def take_screen_shot(self) -> None:
-        if base_driver.QAFTestBase().has_driver():
+        if qaf_test_base.QAFTestBase().has_driver():
             filename = os.path.join(os.getenv('REPORT_DIR'), 'img', str(uuid.uuid4()) + '.png')
-            base_driver.QAFTestBase().get_driver().save_screenshot(filename=filename)
+            qaf_test_base.QAFTestBase().get_driver().save_screenshot(filename=filename)
             self.obj_check_point.screenshot = filename

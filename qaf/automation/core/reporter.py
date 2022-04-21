@@ -123,5 +123,5 @@ class Reporter:
     @staticmethod
     def log_with_screenshot(message: str, message_type: Optional[MessageType] = MessageType.Info) -> None:
         filename = os.path.join(os.getenv('REPORT_DIR'), 'img', str(uuid.uuid4()) + '.png')
-        base_driver.QAFTestBase().get_driver().save_screenshot(filename=filename)
+        qaf_test_base.QAFTestBase().get_driver().save_screenshot(filename=filename)
         Reporter().add_check_point(message, message_type, screen_shot=filename)
