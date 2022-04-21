@@ -24,7 +24,7 @@ import os
 import six
 import re
 from qaf.automation.core.message_type import MessageType
-from qaf.automation.ui.webdriver.base_driver import BaseDriver
+from qaf.automation.ui.webdriver.qaf_test_base import QAFTestBase
 
 from qaf.automation.core.project_environment import ProjectEnvironment
 from qaf.automation.formatter.qaf_report.behave_before_all import before_all
@@ -58,7 +58,7 @@ class BaseEnvironment:
 
     def after_all(self, context):
         ExecutionMetaInfo().endTime = current_timestamp()
-        BaseDriver().stop_driver()
+        QAFTestBase().stop_driver()
 
     def before_feature(self, context, feature):
 

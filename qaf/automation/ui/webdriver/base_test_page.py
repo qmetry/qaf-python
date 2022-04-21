@@ -18,11 +18,11 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-from qaf.automation.ui.webdriver.base_driver import BaseDriver
+from qaf.automation.ui.webdriver.qaf_test_base import QAFTestBase
 from qaf.automation.ui.webdriver.qaf_web_driver import QAFWebDriver
 
 
 class BaseTestPage:
     @property
     def driver(self):
-        return QAFWebDriver(BaseDriver().get_driver())
+        return QAFWebDriver(QAFTestBase().get_driver())

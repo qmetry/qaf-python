@@ -24,7 +24,7 @@ from selenium.webdriver import ActionChains
 
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 
-from qaf.automation.ui.webdriver.base_driver import BaseDriver
+from qaf.automation.ui.webdriver.qaf_test_base import QAFTestBase
 from qaf.automation.ui.webdriver.qaf_web_element import QAFWebElement
 from qaf.automation.core.reporter import Reporter
 
@@ -102,7 +102,7 @@ def verify_visible(context, loc):
 
 @step(u"get '(?P<url>[\S\s]+)'")
 def get(context, url):
-    BaseDriver().get_driver().get(url)
+    QAFTestBase().get_driver().get(url)
 
 
 @step(u"switch to '(?P<driver_name>[\S\s]+)'")
@@ -112,16 +112,16 @@ def switch_driver(context, driver_name):
 
 @step(u"tear down driver")
 def tear_down_driver(context):
-    BaseDriver().get_driver().quit()
+    QAFTestBase().get_driver().quit()
 
 
 @step(u"switch to '(?P<name_or_index>[\S\s]+)' window")
 def switch_to_window(context, name_or_index):
     if isinstance(name_or_index, int):
-        windows = BaseDriver().get_driver().window_handles()
-        BaseDriver().get_driver().switch_to_window(windows[name_or_index])
+        windows = QAFTestBase().get_driver().window_handles()
+        QAFTestBase().get_driver().switch_to_window(windows[name_or_index])
     else:
-        BaseDriver().get_driver().switch_to_window(name_or_index)
+        QAFTestBase().get_driver().switch_to_window(name_or_index)
 
 
 @step(u"clear '(?P<loc>[\S\s]+)'")
@@ -148,7 +148,7 @@ def click(context, loc):
 def drag_and_drop(context, source, target):
     source_element = QAFWebElement(source)
     dest_element = QAFWebElement(target)
-    ActionChains(BaseDriver().get_driver()).drag_and_drop(source_element, dest_element).perform()
+    ActionChains(QAFTestBase().get_driver()).drag_and_drop(source_element, dest_element).perform()
 
 
 @step(u"wait until '(?P<loc>[\S\s]+)' to be visible")
@@ -248,12 +248,12 @@ def verify_not_present(context, loc):
 
 @step(u"wait until ajax call complete")
 def wait_for_ajax_to_complete(context):
-    BaseDriver().get_driver().wait_for_ajax()
+    QAFTestBase().get_driver().wait_for_ajax()
 
 
 @step(u"wait until '(?P<jstoolkit>[\S\s]+)' ajax call complete")
 def wait_for_ajax_to_complete(context, jstoolkit):
-    BaseDriver().get_driver().wait_for_ajax(jstoolkit=jstoolkit)
+    QAFTestBase().get_driver().wait_for_ajax(jstoolkit=jstoolkit)
 
 
 @step(u"verify '(?P<loc>[\S\s]+)' not visible")
@@ -409,40 +409,40 @@ def assert_not_css_class(context, loc, class_name):
 @step(u"set '(?P<loc>[\S\s]+)' attribute '(?P<attr>[\S\s]+)' value is '(?P<value>[\S\s]+)'")
 def set_attribute(context, loc, attr, value):
     element = QAFWebElement(loc)
-    BaseDriver().get_driver().execute_script("arguments[0].{attr} = arguments[1]".format(attr=attr), element, value)
+    QAFTestBase().get_driver().execute_script("arguments[0].{attr} = arguments[1]".format(attr=attr), element, value)
 
 
 @step(u"add cookie '(?P<name>[\S\s]+)' with value '(?P<value>[\S\s]+)'")
 def add_cookie(context, name, value):
-    BaseDriver().get_driver().add_cookie({name: value})
+    QAFTestBase().get_driver().add_cookie({name: value})
 
 
 @step(u"delete cookie with name '(?P<name>[\S\s]+)'")
 def delete_cookie(context, name):
-    BaseDriver().get_driver().delete_cookie(name)
+    QAFTestBase().get_driver().delete_cookie(name)
 
 
 @step(u"delete all cookies")
 def delete_all_cookies(context):
-    BaseDriver().get_driver().delete_all_cookies()
+    QAFTestBase().get_driver().delete_all_cookies()
 
 
 @step(u"get a cookie with a name '(?P<name>[\S\s]+)'")
 def get_cookie(context, name):
-    BaseDriver().get_driver().get_cookie(name)
+    QAFTestBase().get_driver().get_cookie(name)
 
 
 @step(u"mouse move on '(?P<loc>[\S\s]+)'")
 def mouse_move(context, loc):
     location = QAFWebElement(loc).location
-    ActionChains(BaseDriver().get_driver()).move_by_offset(location['x'], location['y'])
+    ActionChains(QAFTestBase().get_driver()).move_by_offset(location['x'], location['y'])
 
 
 @step(u"switch to frame '(?P<frame_name>[\s\S]+)'")
 def switch_frame(context, frame_name):
-    BaseDriver().get_driver().switch_to_frame(frame_name)
+    QAFTestBase().get_driver().switch_to_frame(frame_name)
 
 
 @step(u"switch to parent frame")
 def switch_to_parent_frame(context):
-    BaseDriver().get_driver().switch_to_default_content()
+    QAFTestBase().get_driver().switch_to_default_content()

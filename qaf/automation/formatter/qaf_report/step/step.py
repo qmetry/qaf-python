@@ -27,7 +27,7 @@ from qaf.automation.formatter.qaf_report.step.checkpoint import CheckPoint
 from qaf.automation.formatter.qaf_report.step.sub_check_points import SubCheckPoints
 from qaf.automation.formatter.qaf_report.util.utils import step_status, STEP_STATUS
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
-from qaf.automation.ui.webdriver import base_driver
+from qaf.automation.ui.webdriver import qaf_test_base
 
 
 class Step:
@@ -69,7 +69,7 @@ class Step:
         self.obj_check_point = None
 
     def take_screen_shot(self) -> None:
-        if base_driver.BaseDriver().has_driver():
+        if base_driver.QAFTestBase().has_driver():
             filename = os.path.join(os.getenv('REPORT_DIR'), 'img', str(uuid.uuid4()) + '.png')
-            base_driver.BaseDriver().get_driver().save_screenshot(filename=filename)
+            base_driver.QAFTestBase().get_driver().save_screenshot(filename=filename)
             self.obj_check_point.screenshot = filename

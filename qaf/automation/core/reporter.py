@@ -22,7 +22,7 @@ import uuid
 from qaf.automation.formatter.qaf_report.step.checkpoint import CheckPoint
 import os
 from qaf.automation.formatter.qaf_report.step.sub_check_points import SubCheckPoints
-from qaf.automation.ui.webdriver import base_driver
+from qaf.automation.ui.webdriver import qaf_test_base
 from qaf.automation.core.message_type import MessageType
 from typing import (
     Optional,
@@ -123,5 +123,5 @@ class Reporter:
     @staticmethod
     def log_with_screenshot(message: str, message_type: Optional[MessageType] = MessageType.Info) -> None:
         filename = os.path.join(os.getenv('REPORT_DIR'), 'img', str(uuid.uuid4()) + '.png')
-        base_driver.BaseDriver().get_driver().save_screenshot(filename=filename)
+        base_driver.QAFTestBase().get_driver().save_screenshot(filename=filename)
         Reporter().add_check_point(message, message_type, screen_shot=filename)

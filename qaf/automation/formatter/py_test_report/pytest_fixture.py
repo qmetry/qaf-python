@@ -26,7 +26,7 @@ from qaf.automation.core.singleton import Singleton
 
 from qaf.automation.core.message_type import MessageType
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
-from qaf.automation.ui.webdriver.base_driver import BaseDriver
+from qaf.automation.ui.webdriver.qaf_test_base import QAFTestBase
 
 from qaf.automation.core.project_environment import ProjectEnvironment
 from qaf.automation.formatter.qaf_report.behave_before_all import before_all
@@ -60,7 +60,7 @@ class PyTestFixture(metaclass=Singleton):
 
     def after_session(self) -> None:
         ExecutionMetaInfo().endTime = current_timestamp()
-        BaseDriver().stop_driver()
+        QAFTestBase().stop_driver()
 
     def before_class(self, clas) -> None:
         current_class_directory = os.path.join(os.getenv('REPORT_DIR'), 'json', re.sub('[^A-Za-z0-9]+', ' - ',

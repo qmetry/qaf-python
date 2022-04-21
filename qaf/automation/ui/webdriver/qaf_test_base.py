@@ -31,7 +31,7 @@ from qaf.automation.ui.webdriver.desired_capabilities import get_desired_capabil
     get_command_executor
 
 
-class BaseDriver:
+class QAFTestBase:
     __driver = None
 
     def start_driver(self) -> None:
@@ -41,7 +41,7 @@ class BaseDriver:
         Returns:
             None
         """
-        if BaseDriver.__driver is not None:
+        if QAFTestBase.__driver is not None:
             self.stop_driver()
 
         driver_name = str(CM().get_str_for_key(AP.DRIVER_NAME)).lower()
@@ -64,7 +64,7 @@ class BaseDriver:
 
         driver = appium_webdriver.Remote(command_executor=command_executor,
                                          desired_capabilities=desired_capabilities)
-        BaseDriver.__driver = qafwebdriver.QAFAppiumWebDriver(driver)
+        QAFTestBase.__driver = qafwebdriver.QAFAppiumWebDriver(driver)
 
     def __start_webdriver(self, driver_name):
         driver_name = driver_name.replace('driver', '')
@@ -78,7 +78,7 @@ class BaseDriver:
         driver = load_class(class_name)(options=driver_options,
                                         desired_capabilities=desired_capabilities)
 
-        BaseDriver.__driver = qafwebdriver.QAFWebDriver(driver)
+        QAFTestBase.__driver = qafwebdriver.QAFWebDriver(driver)
 
     def __start_remote_webdriver(self, driver_name):
         browser_name = driver_name.replace('driver', '').replace('remote', '')
@@ -94,7 +94,7 @@ class BaseDriver:
         driver = load_class(class_name)(command_executor=command_executor,
                                         options=driver_options,
                                         desired_capabilities=desired_capabilities)
-        BaseDriver.__driver = qafwebdriver.QAFWebDriver(driver)
+        QAFTestBase.__driver = qafwebdriver.QAFWebDriver(driver)
 
     def __web_driver_manager(self, driver_name):
         driver_name = driver_name.replace('driver', '').replace('remote', '').lower()
@@ -112,8 +112,8 @@ class BaseDriver:
         Returns:
             None
         """
-        if BaseDriver.__driver is not None:
-            BaseDriver.__driver.quit()
+        if QAFTestBase.__driver is not None:
+            QAFTestBase.__driver.quit()
 
     def get_driver(self):
         """
@@ -122,13 +122,13 @@ class BaseDriver:
         Returns:
             webdriver: Returns web driver object.
         """
-        if BaseDriver.__driver is None:
+        if QAFTestBase.__driver is None:
             self.start_driver()
 
-        return BaseDriver.__driver
+        return QAFTestBase.__driver
 
     @staticmethod
     def has_driver():
-        if BaseDriver.__driver is None:
+        if QAFTestBase.__driver is None:
             return False
         return True

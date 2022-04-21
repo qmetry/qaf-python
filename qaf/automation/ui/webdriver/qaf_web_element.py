@@ -27,7 +27,7 @@ from selenium.webdriver.remote.webelement import WebElement as RemoteWebElement
 from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.core.message_type import MessageType
-from qaf.automation.ui.webdriver import base_driver
+from qaf.automation.ui.webdriver import qaf_test_base
 from qaf.automation.ui.webdriver.qaf_find_by import get_find_by
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 from qaf.automation.core.load_class import load_class
@@ -53,7 +53,7 @@ class QAFWebElement(RemoteWebElement):
             self.description = self.locator
             self.cacheable = cacheable
             self._id = -1
-            parent = base_driver.BaseDriver().get_driver()
+            parent = base_driver.QAFTestBase().get_driver()
             RemoteWebElement.__init__(self, parent=parent, id_=self.id, w3c=parent.w3c)
 
         if CM().contains_key(AP.WEBELEMENT_COMMAND_LISTENERS):
@@ -103,14 +103,14 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = 'Wait time out for ' + self.description + ' to be visible'
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForVisible((self.by, self.locator)), message
         )
 
     def wait_for_not_visible(self, wait_time: Optional[int] = 0) -> bool:
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotVisible((self.by, self.locator))
         )
 
@@ -118,7 +118,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be disabled"
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForDisabled((self.by, self.locator)), message
         )
 
@@ -126,7 +126,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be enabled"
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForEnabled((self.by, self.locator)), message
         )
 
@@ -134,7 +134,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be present"
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForPresent((self.by, self.locator)), message
         )
 
@@ -142,7 +142,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to not be present"
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotPresent((self.by, self.locator)), message
         )
 
@@ -150,7 +150,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " text " + text_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForText((self.by, self.locator), text_), message
         )
 
@@ -158,7 +158,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " containing text " + text_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForContainingText((self.by, self.locator), text_), message
         )
 
@@ -166,7 +166,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " text not " + text_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotText((self.by, self.locator), text_), message
         )
 
@@ -174,7 +174,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " containing text not " + text_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotContainingText((self.by, self.locator), text_), message
         )
 
@@ -182,7 +182,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " value " + value_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForValue((self.by, self.locator), value_), message
         )
 
@@ -190,7 +190,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " value not " + value_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotValue((self.by, self.locator), value_), message
         )
 
@@ -198,7 +198,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be selected"
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForSelected((self.by, self.locator)), message
         )
 
@@ -206,7 +206,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " not to be selected"
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotSelected((self.by, self.locator)), message
         )
 
@@ -214,7 +214,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " " + attr_ + " = " + value_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForAttribute((self.by, self.locator), attr_, value_), message
         )
 
@@ -222,7 +222,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " " + attr_ + " != " + value_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotAttribute((self.by, self.locator), attr_, value_), message
         )
 
@@ -230,7 +230,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have css class " + class_name_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForCssClass((self.by, self.locator), class_name_), message
         )
 
@@ -238,7 +238,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have not css class " + class_name_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotCssClass((self.by, self.locator), class_name_), message
         )
 
@@ -246,7 +246,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have css style " + style_name_ + "=" + value_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForCssStyle((self.by, self.locator), style_name_, value_), message
         )
 
@@ -254,7 +254,7 @@ class QAFWebElement(RemoteWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have not css style " + style_name_ + "=" + value_
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForNotCssStyle((self.by, self.locator), style_name_, value_), message
         )
 
@@ -699,9 +699,9 @@ class QAFWebElement(RemoteWebElement):
         if kwargs is not None and len(kwargs.keys()) > 0:
             message = message % kwargs
         if outcome:
-            Reporter.log(message, MessageType.Pass)
+            Reporter.log_with_screenshot(message, MessageType.Pass)
         else:
-            Reporter.log(message, MessageType.Fail)
+            Reporter.log_with_screenshot(message, MessageType.Fail)
 
     def before_command(self, command_tracker: CommandTracker) -> None:
         command_tracker.stage = Stage.executing_before_method

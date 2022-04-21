@@ -33,7 +33,7 @@ from qaf.automation.core.configurations_manager import ConfigurationsManager as 
 from qaf.automation.core.load_class import load_class
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
 from qaf.automation.ui.webdriver.command_tracker import CommandTracker
-from qaf.automation.ui.webdriver import qaf_web_element as qafwebelement, base_driver
+from qaf.automation.ui.webdriver import qaf_web_element as qafwebelement, qaf_test_base
 from qaf.automation.ui.webdriver.qaf_webdriver_listener import QAFWebDriverListener
 
 
@@ -98,7 +98,7 @@ class QAFWebDriver(RemoteWebDriver):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
             if wait_time == 0 else wait_time
         message = 'Wait time out for ajax to complete'
-        return WebDriverWait(base_driver.BaseDriver().get_driver(), wait_time_out).until(
+        return WebDriverWait(base_driver.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForAjax(jstoolkit), message
         )
 
