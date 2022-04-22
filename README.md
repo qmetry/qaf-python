@@ -5,13 +5,7 @@ The framework is built upon Python 3.x and integrates Behave, Webdriver and Appi
 
 ## Installation
 
-    pip3 install git+https://github.com/qmetry/qaf-python.git
-    pip3 install git+ssh://git@github.com:qmetry/qaf-python.git
-
-Install forcefully over the existing version
-
-    python3 setup.py install --force
-    pip3 install . --upgrade
+    pip install qaf-python
 
 ## Challenges
 * Complex syntaxes to write and modify in reference with other programming languages means to be “one line of code at a time"
