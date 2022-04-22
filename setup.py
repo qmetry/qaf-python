@@ -40,24 +40,13 @@ setup(name='qaf-python',
       long_description_content_type="text/markdown",
       maintainer_email='nishith.shah@infostretch.com',
 
-      # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
-
-          # How mature is this project? Common values are
-          #   3 - Alpha
-          #   4 - Beta
-          #   5 - Production/Stable
           'Development Status :: 4 - Beta',
-
-          # Indicate who your project is intended for
-          'Intended Audience :: QE Automation',
-
+          'Intended Audience :: Developers',
           'Natural Language :: English',
           'Operating System :: OS Independent',
-
           'License :: OSI Approved :: MIT License',
-          # Specify the Python versions you support here. In particular, ensure
-          'Programming Language :: Python :: 3'
+          'Programming Language :: Python :: 3',
           'Topic :: Software Development :: Quality Assurance',
           'Topic :: Software Development :: Testing',
       ],
