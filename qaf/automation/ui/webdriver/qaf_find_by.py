@@ -17,7 +17,6 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
 from selenium.webdriver.common.by import By
 
 
@@ -29,20 +28,17 @@ def get_find_by(locator: str) -> (str, str):
         by = By.XPATH
         value = locator
     elif locator.startswith('id='):
-        by = By.XPATH
-        value = "//*[@id='" + locator.split('id=', 1)[1] + "']"
+        by = By.ID
+        value = locator.split('id=', 1)[1]
     elif locator.startswith('name='):
-        by = By.XPATH
-        value = "//*[@name='" + locator.split('name=', 1)[1] + "']"
+        by = By.NAME
+        value = locator.split('name=', 1)[1]
     elif locator.startswith('class='):
-        by = By.XPATH
-        value = "//*[@class='" + locator.split('class=', 1)[1] + "']"
+        by = By.CLASS_NAME
+        value = locator.split('class=', 1)[1]
     elif locator.startswith('text='):
-        by = By.XPATH
-        value = "//*[@text='" + locator.split('text=', 1)[1] + "']"
-    elif locator.startswith('content-desc='):
-        by = By.XPATH
-        value = '//*[@*="' + locator.split('content-desc=', 1)[1] + '"]'
+        by = By.LINK_TEXT
+        value = locator.split('text=', 1)[1]
     elif "=" in locator:
         by = str(locator).split("=")[0]
         value = str(locator).split("=")[1]

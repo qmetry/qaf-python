@@ -49,3 +49,4 @@ Thumbs.db
 *.wmv
 
 qaf_python.egg-info
+.pypirc
