@@ -73,7 +73,6 @@ class QAFTestBase:
             self.__web_driver_manager(driver_name=driver_name)
             class_name = 'selenium.webdriver.{driver_name}.webdriver.WebDriver'.format(driver_name=driver_name)
             driver = load_class(class_name)(options=driver_options, desired_capabilities=desired_capabilities)
-
         QAFTestBase.__driver = qafwebdriver.QAFWebDriver(driver)
 
     def __web_driver_manager(self, driver_name):

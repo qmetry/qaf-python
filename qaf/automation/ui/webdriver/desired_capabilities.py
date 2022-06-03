@@ -63,19 +63,23 @@ def get_driver_options(driver_name: str):
     return options
 
 
-def get_command_executor(hostname: str, port: int) -> str:
-    parsed_url = parse.urlparse(hostname)
+def get_command_executor() -> str:
+    remote_server = str(CM().get_str_for_key(AP.REMOTE_SERVER))
+    remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
+    if CM().get_int_for_key(AP.REMOTE_PORT) is None:
+        return remote_server
+
+    parsed_url = parse.urlparse(remote_server)
     if parsed_url.hostname:
         scheme = parsed_url.scheme
-        hostname = parsed_url.hostname
+        remote_server = parsed_url.hostname
     else:
         scheme = "http"
 
     path = "/wd/hub"
-    executor = '{scheme}://{hostname}:{port}{path}'.format(
+    return '{scheme}://{hostname}:{port}{path}'.format(
         scheme=scheme,
-        hostname=hostname,
-        port=port,
+        hostname=remote_server,
+        port=remote_port,
         path=path
     )
-    return executor
