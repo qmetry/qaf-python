@@ -32,7 +32,10 @@ from qaf.automation.keys.application_properties import ApplicationProperties as 
 
 def get_desired_capabilities(driver_name: str) -> dict:
     browser_name = str(driver_name).upper()
-    capabilities = DesiredCapabilities.__dict__[browser_name].copy()
+    if browser_name in DesiredCapabilities.__dict__:
+        capabilities = DesiredCapabilities.__dict__[browser_name].copy()
+    else:
+        capabilities = dict()
 
     key = AP.DRIVER_CAPABILITY_PREFIX
     additional_capabilities = CM().get_dict_for_key(key)
