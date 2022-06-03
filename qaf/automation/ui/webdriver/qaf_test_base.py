@@ -55,14 +55,8 @@ class QAFTestBase:
 
     def __start_appium_webdriver(self, driver_name):
         driver_name = driver_name.replace('driver', '')
-
         desired_capabilities = get_desired_capabilities(driver_name=driver_name)
-
-        remote_server = str(CM().get_str_for_key(AP.REMOTE_SERVER))
-        remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
-        command_executor = get_command_executor(hostname=remote_server, port=remote_port)
-
-        driver = appium_webdriver.Remote(command_executor=command_executor,
+        driver = appium_webdriver.Remote(command_executor=get_command_executor(),
                                          desired_capabilities=desired_capabilities)
         QAFTestBase.__driver = qafwebdriver.QAFAppiumWebDriver(driver)
 
@@ -87,11 +81,7 @@ class QAFTestBase:
         driver_options = get_driver_options(driver_name=browser_name)
 
         class_name = 'selenium.webdriver.remote.webdriver.WebDriver'
-        remote_server = str(CM().get_str_for_key(AP.REMOTE_SERVER))
-        remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
-        command_executor = get_command_executor(hostname=remote_server, port=remote_port)
-
-        driver = load_class(class_name)(command_executor=command_executor,
+        driver = load_class(class_name)(command_executor=get_command_executor(),
                                         options=driver_options,
                                         desired_capabilities=desired_capabilities)
         QAFTestBase.__driver = qafwebdriver.QAFWebDriver(driver)
