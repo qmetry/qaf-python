@@ -27,9 +27,6 @@ from qaf.automation.core.configurations_manager import ConfigurationsManager as 
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
 
 
-# https://www.programcreek.com/python/example/100025/selenium.webdriver.ChromeOptions
-
-
 def get_desired_capabilities(driver_name: str) -> dict:
     browser_name = str(driver_name).upper()
     if browser_name in DesiredCapabilities.__dict__:
