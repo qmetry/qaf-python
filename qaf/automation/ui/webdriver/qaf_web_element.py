@@ -48,12 +48,12 @@ class QAFWebElement(RemoteWebElement):
         self.cacheable = cacheable
 
         if len(key) > 0:
+            parent = qaf_test_base.QAFTestBase().get_driver()
             value = CM().get_str_for_key(key, default_value=key)
-            self.by, self.locator = get_find_by(value)
+            self.by, self.locator = get_find_by(value, w3c=parent.w3c)
             self.description = self.locator
             self.cacheable = cacheable
             self._id = -1
-            parent = qaf_test_base.QAFTestBase().get_driver()
             RemoteWebElement.__init__(self, parent=parent, id_=self.id, w3c=parent.w3c)
 
         if CM().contains_key(AP.WEBELEMENT_COMMAND_LISTENERS):
@@ -730,3 +730,7 @@ class QAFWebElement(RemoteWebElement):
             if command_tracker.has_exception():
                 for listener in self._listeners:
                     listener.on_exception(self, command_tracker)
+
+
+def _(key: str) -> QAFWebElement:
+    return QAFWebElement(key=key)

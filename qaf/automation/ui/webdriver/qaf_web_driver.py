@@ -23,11 +23,11 @@ from typing import Optional
 from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.ui import js_toolkit
-from qaf.automation.ui.util.qaf_wd_expected_conditions import WaitForAjax
+from qaf.automation.ui.util.qaf_wd_expected_conditions import WaitForAjax, WaitForAnyPresent
 from qaf.automation.ui.webdriver.qaf_find_by import get_find_by
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
-from appium.webdriver.webdriver import WebDriver as AppiumRemoteWebDriver
+from appium.webdriver import Remote as AppiumDriver
 
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 from qaf.automation.core.load_class import load_class
@@ -39,16 +39,16 @@ from qaf.automation.ui.webdriver.qaf_webdriver_listener import QAFWebDriverListe
 
 class QAFWebDriver(RemoteWebDriver):
 
-    def __init__(self, driver, browser_profile=None, proxy=None,
+    def __init__(self, under_laying_driver, browser_profile=None, proxy=None,
                  keep_alive=False, file_detector=None, options=None):
-        self.__driver = driver
+        self.__under_laying_driver = under_laying_driver
         self.w3c = False
 
         self.__listeners = []
         self.__listeners.append(QAFWebDriverListener())
 
-        RemoteWebDriver.__init__(self, command_executor=driver.command_executor,
-                                 desired_capabilities=driver.desired_capabilities,
+        RemoteWebDriver.__init__(self, command_executor=under_laying_driver.command_executor,
+                                 desired_capabilities=under_laying_driver.desired_capabilities,
                                  browser_profile=browser_profile,
                                  proxy=proxy,
                                  keep_alive=keep_alive, file_detector=file_detector, options=options)
@@ -57,17 +57,23 @@ class QAFWebDriver(RemoteWebDriver):
             class_name = CM().get_str_for_key(AP.WEBDRIVER_COMMAND_LISTENERS)
             self.__listeners.append(load_class(class_name)())
 
-    def start_session(self, capabilities: dict, browser_profile=None) -> None:
-        self.command_executor = self.__driver.command_executor
-        self.capabilities = self.__driver.capabilities
-        if hasattr(self.command_executor, 'w3c') and self.command_executor.w3c:
-            self.w3c = self.command_executor.w3c is None
-        self.session_id = self.__driver.session_id
+    def start_client(self):
+        pass
 
-    def find_element(self, by=By.ID, value=None, key=None) -> qafwebelement.QAFWebElement:
+    def stop_client(self):
+        pass
+
+    def start_session(self, capabilities: dict, browser_profile=None) -> None:
+        self.command_executor = self.__under_laying_driver.command_executor
+        self.capabilities = self.__under_laying_driver.capabilities
+        self.w3c = self.command_executor.w3c
+        self.session_id = self.__under_laying_driver.session_id
+
+    def find_element(self, by: Optional[str] = By.ID, value: Optional[str] = None,
+                     key: Optional[str] = None) -> qafwebelement.QAFWebElement:
         if key is not None and len(key) > 0:
             value = CM().get_str_for_key(key, default_value=key)
-            by, value = get_find_by(value)
+            by, value = get_find_by(value, w3c=self.w3c)
 
         web_element = super(QAFWebDriver, self).find_element(by=by, value=value)
         qaf_web_element = qafwebelement.QAFWebElement.create_instance_using_webelement(web_element)
@@ -81,7 +87,7 @@ class QAFWebDriver(RemoteWebDriver):
         qafwebelement.QAFWebElement]:
         if key is not None and len(key) > 0:
             value = CM().get_str_for_key(key, default_value=key)
-            by, value = get_find_by(value)
+            by, value = get_find_by(value, w3c=self.w3c)
 
         web_elements = super(QAFWebDriver, self).find_elements(by=by, value=value)
         qaf_web_elements = []
@@ -100,6 +106,13 @@ class QAFWebDriver(RemoteWebDriver):
         message = 'Wait time out for ajax to complete'
         return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
             WaitForAjax(jstoolkit), message
+        )
+
+    def wait_for_any_present(self, locators: [str]) -> bool:
+        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT, 0)
+        message = "Wait time out for any of elements [%s] to be present".format(','.join(map(str, locators)))
+        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
+            WaitForAnyPresent(locators), message
         )
 
     def execute(self, driver_command: str, params: dict = None) -> dict:
@@ -143,6 +156,14 @@ class QAFWebDriver(RemoteWebDriver):
             for listener in self.__listeners:
                 listener.on_exception(self, command_tracker)
 
+    @property
+    def under_laying_driver(self):
+        return self if self.__under_laying_driver is None else self.__under_laying_driver
 
-class QAFAppiumWebDriver(AppiumRemoteWebDriver, QAFWebDriver):
-    pass
+    @property
+    def to_selenium_webdriver(self) -> RemoteWebDriver:
+        return self if self.__under_laying_driver is None else self.__under_laying_driver
+
+    @property
+    def to_appium_webdriver(self) -> AppiumDriver:
+        return self if self.__under_laying_driver is None else self.__under_laying_driver

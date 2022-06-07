@@ -37,6 +37,7 @@ class ApplicationProperties:
     REMOTE_PORT = "remote.port"
 
     DRIVER_NAME = "driver.name"
+    DRIVER_CLASS = "driver.class"
 
     DRIVER_CAPABILITY_PREFIX = "driver.capabilities"
     DRIVER_ADDITIONAL_CAPABILITIES = "driver.additional.capabilities"
@@ -54,3 +55,5 @@ class ApplicationProperties:
     ENV_DEFAULT_LANGUAGE = "env.default.locale"
     EXECUTABLE_PATH = 'executable.path'
     TESTING_APPROACH = 'testing.approach'
+
+    SELENIUM_SINGLETON = 'selenium.singleton'
