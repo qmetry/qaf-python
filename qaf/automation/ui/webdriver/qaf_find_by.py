@@ -20,29 +20,36 @@
 from selenium.webdriver.common.by import By
 
 
-def get_find_by(locator: str) -> (str, str):
+def get_find_by(locator: str, w3c=False) -> (str, str):
     if locator.startswith('xpath='):
-        by = By.XPATH
-        value = locator.split('xpath=', 1)[1]
+        return By.XPATH, locator.split('xpath=', 1)[1]
     elif locator.startswith('//'):
-        by = By.XPATH
-        value = locator
-    elif locator.startswith('id='):
-        by = By.ID
-        value = locator.split('id=', 1)[1]
-    elif locator.startswith('name='):
-        by = By.NAME
-        value = locator.split('name=', 1)[1]
-    elif locator.startswith('class='):
-        by = By.CLASS_NAME
-        value = locator.split('class=', 1)[1]
+        return By.XPATH, locator
+    elif locator.startswith('css='):
+        return By.CSS_SELECTOR, locator.split('css=', 1)[1]
     elif locator.startswith('text='):
-        by = By.LINK_TEXT
-        value = locator.split('text=', 1)[1]
-    elif "=" in locator:
-        by = str(locator).split("=")[0]
-        value = str(locator).split("=")[1]
+        return By.LINK_TEXT, locator.split('text=', 1)[1]
+
+    if w3c:
+        if locator.startswith('id='):
+            return By.CSS_SELECTOR, '[id="%s"]' % locator.split('id=', 1)[1]
+        elif locator.startswith('name='):
+            return By.CSS_SELECTOR, '[name="%s"]' % locator.split('name=', 1)[1]
+        elif locator.startswith('class='):
+            return By.CSS_SELECTOR, ".%s" % locator.split('class=', 1)[1]
+        elif locator.startswith('tag='):
+            return By.CSS_SELECTOR, locator.split('tag=', 1)[1]
     else:
-        by = By.ID
-        value = str(locator)
-    return by, value
+        if locator.startswith('id='):
+            return By.ID, locator.split('id=', 1)[1]
+        elif locator.startswith('name='):
+            return By.NAME, locator.split('name=', 1)[1]
+        elif locator.startswith('class='):
+            return By.CLASS_NAME, locator.split('class=', 1)[1]
+        elif locator.startswith('tag='):
+            return By.TAG_NAME, locator.split('tag=', 1)[1]
+
+    if "=" in locator:
+        return str(locator).split("=")[0], str(locator).split("=")[1]
+    else:
+        return By.CSS_SELECTOR, '[id="%s"]' % locator
