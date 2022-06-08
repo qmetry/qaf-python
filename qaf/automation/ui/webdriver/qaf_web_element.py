@@ -81,6 +81,7 @@ class QAFWebElement(RemoteWebElement):
         qaf_web_element = QAFWebElement.create_instance_using_webelement(web_element)
         qaf_web_element._parent_element = self
         qaf_web_element._parent = self
+        qaf_web_element._id = web_element.id
         qaf_web_element.by = by
         qaf_web_element.locator = value
         qaf_web_element.description = value
@@ -94,6 +95,7 @@ class QAFWebElement(RemoteWebElement):
             qaf_web_element = QAFWebElement.create_instance_using_webelement(web_element)
             qaf_web_element._parent_element = self
             qaf_web_element._parent = self
+            qaf_web_element._id = web_element.id
             qaf_web_element.by = by
             qaf_web_element.locator = value
             qaf_web_element.description = value

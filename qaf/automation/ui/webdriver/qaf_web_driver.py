@@ -79,6 +79,7 @@ class QAFWebDriver(RemoteWebDriver):
         web_element = super(QAFWebDriver, self).find_element(by=by, value=value)
         qaf_web_element = qafwebelement.QAFWebElement.create_instance_using_webelement(web_element)
         qaf_web_element._parent = self
+        qaf_web_element._id = web_element.id
         qaf_web_element.by = by
         qaf_web_element.locator = value
         qaf_web_element.description = value
@@ -95,6 +96,7 @@ class QAFWebDriver(RemoteWebDriver):
         for web_element in web_elements:
             qaf_web_element = qafwebelement.QAFWebElement.create_instance_using_webelement(web_element)
             qaf_web_element._parent = self
+            qaf_web_element._id = web_element.id
             qaf_web_element.by = by
             qaf_web_element.locator = value
             qaf_web_element.description = value
