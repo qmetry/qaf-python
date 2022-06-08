@@ -20,6 +20,7 @@
 
 from typing import Optional
 
+from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.ui import js_toolkit
@@ -139,6 +140,13 @@ class QAFWebDriver(RemoteWebDriver):
 
         self.after_command(command_tracker)
         return command_tracker.response
+
+    def load(self, element: qafwebelement.QAFWebElement):
+        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT)
+        web_element = WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
+            presence_of_element_located((element.by, element.locator)))
+        qafwebelement.QAFWebElement.create_instance_using_webelement(web_element)
+        return web_element.id
 
     # Listener methods
     def before_command(self, command_tracker: CommandTracker) -> None:

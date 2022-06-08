@@ -62,10 +62,11 @@ def get_driver_options(driver_name: str):
 
 def get_command_executor() -> str:
     remote_server = str(CM().get_str_for_key(AP.REMOTE_SERVER))
-    remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
     if CM().get_int_for_key(AP.REMOTE_PORT) is None:
+        print(remote_server)
         return remote_server
 
+    remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
     parsed_url = parse.urlparse(remote_server)
     if parsed_url.hostname:
         scheme = parsed_url.scheme

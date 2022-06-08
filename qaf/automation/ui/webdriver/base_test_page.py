@@ -24,5 +24,5 @@ from qaf.automation.ui.webdriver.qaf_web_driver import QAFWebDriver
 
 class BaseTestPage:
     @property
-    def driver(self):
-        return QAFWebDriver(QAFTestBase().get_driver())
+    def driver(self) -> QAFWebDriver:
+        return QAFTestBase().get_driver()
