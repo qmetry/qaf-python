@@ -4,6 +4,8 @@ import random
 import re
 import string
 
+from qaf.automation.util.string_util import to_boolean
+
 
 class PropretyUtil(dict):
     def __init__(self, name=None):
@@ -32,13 +34,19 @@ class PropretyUtil(dict):
                 for key, value in data.items():
                     self.set_property(key=key, value=json.dumps(value))
 
-    def get_string(self, key):
-        return ""
+    def get_string(self, key, default=None):
+        return str(self.get(self, key, default))
+
+    def get_boolean(self, key, default=None):
+        return to_boolean(self.get_string(self, key, default))
+
+    def get_int(self, key, default=None):
+        return int(self.get(self, key, default))
 
     def set_property(self, key, value):
         self.__dict__.__setitem__(key, value)
 
-    def get_property(self, key, default):
+    def get_property(self, key, default=None):
         return self.get(self, key, default)
 
     def __getitem__(self, key):

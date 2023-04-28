@@ -21,6 +21,7 @@
 import json
 
 from qaf.automation.core.singleton import Singleton
+from qaf.automation.util.property_util import PropretyUtil
 from qaf.automation.util.string_util import to_boolean
 from typing import (
     Optional,
@@ -33,7 +34,7 @@ class ConfigurationsManager(metaclass=Singleton):
     """
 
     def __init__(self):
-        self.__dict = {}
+        self.__dict = PropretyUtil()
 
     def contains_key(self, key: str) -> bool:
         """
@@ -59,7 +60,7 @@ class ConfigurationsManager(metaclass=Singleton):
         Returns:
             None
         """
-        self.__dict[key] = value
+        self.__dict.set_property(key,value)
 
     def get_object_for_key(self, key: str, default_value: Optional[object] = None) -> object:
         """
@@ -85,7 +86,8 @@ class ConfigurationsManager(metaclass=Singleton):
         Returns:
             Optional(str): Stored value for key
         """
-        return str(self.__dict[key]) if self.contains_key(key) else default_value
+        #return str(self.__dict[key]) if self.contains_key(key) else default_value
+        return self.__dict.get_string(key, default_value)
 
     def get_int_for_key(self, key: str, default_value=None) -> int:
         """
@@ -146,3 +148,7 @@ class ConfigurationsManager(metaclass=Singleton):
         if self.contains_key(key) and isinstance(self.__dict[key], str):
             return json.loads(self.__dict[key])
         return default_value
+
+    @staticmethod
+    def get_bundel(self):
+        return ConfigurationsManager().__dict

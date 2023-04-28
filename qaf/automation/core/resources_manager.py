@@ -45,19 +45,14 @@ class ResourcesManager:
         """
         application_properties_path = os.path.join('resources', 'application_properties.ini')
         if os.path.exists(application_properties_path):
-            config = ConfigParser(interpolation=ExtendedInterpolation())
-            config.read(application_properties_path)
-
-            for each_section in config.sections():
-                for each_key, each_val in config.items(each_section):
-                    CM().set_object_for_key(value=each_val, key=each_key)
+            CM.get_bundel().load(application_properties_path)
 
         if ResourcesManager.default_language is None and CM().get_str_for_key(
                 AP.ENV_DEFAULT_LANGUAGE) is not None:
             ResourcesManager.default_language = CM().get_str_for_key(
                 AP.ENV_DEFAULT_LANGUAGE)
 
-        self.__load_resources(CM().get_str_for_key(AP.RESOURCES))
+        CM.get_bundel().load(CM().get_str_for_key(AP.RESOURCES))
 
     def __load_resources(self, resources_path: str) -> None:
         all_resources_path = resources_path.split(";")
@@ -66,10 +61,12 @@ class ResourcesManager:
                 for root, dirs, files in os.walk(each_resource_path):
                     for file in files:
                         file_path = os.path.join(root, file)
-                        self.__load_files(file_path)
+                        # self.__load_files(file_path)
+                        CM.get_bundel().load(file)
 
             elif os.path.isfile(each_resource_path):
-                self.__load_files(each_resource_path)
+                # self.__load_files(each_resource_path)
+                CM.get_bundel().load(each_resource_path)
 
     def __load_files(self, file: str) -> None:
         extension = os.path.splitext(file)[1]
