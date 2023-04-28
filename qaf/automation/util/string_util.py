@@ -648,4 +648,4 @@ def slugify(string, sign='-'):
 
 
 def to_boolean(string):
-    return string.lower() in ("yes", "true", "t", "1", "yes")
+    return string.lower() in ("yes", "true", "t", "1", "y")
