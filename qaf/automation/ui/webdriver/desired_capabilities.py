@@ -27,9 +27,6 @@ from qaf.automation.core.configurations_manager import ConfigurationsManager as 
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
 
 
-# https://www.programcreek.com/python/example/100025/selenium.webdriver.ChromeOptions
-
-
 def get_desired_capabilities(driver_name: str) -> dict:
     browser_name = str(driver_name).upper()
     if browser_name in DesiredCapabilities.__dict__:
@@ -65,10 +62,11 @@ def get_driver_options(driver_name: str):
 
 def get_command_executor() -> str:
     remote_server = str(CM().get_str_for_key(AP.REMOTE_SERVER))
-    remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
     if CM().get_int_for_key(AP.REMOTE_PORT) is None:
+        print(remote_server)
         return remote_server
 
+    remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
     parsed_url = parse.urlparse(remote_server)
     if parsed_url.hostname:
         scheme = parsed_url.scheme

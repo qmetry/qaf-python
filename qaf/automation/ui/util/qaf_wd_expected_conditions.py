@@ -21,7 +21,6 @@
 from typing import Any
 
 from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import StaleElementReferenceException
 
 
@@ -43,8 +42,10 @@ class WaitForVisible(object):
 
     def __call__(self, driver) -> bool:
         try:
-            value = _find_element(driver, self.locator).is_displayed()
+            value = driver.find_element(*self.locator).is_displayed()
             return value
+        except NoSuchElementException:
+            return False
         except StaleElementReferenceException:
             return False
 
@@ -55,8 +56,10 @@ class WaitForNotVisible(object):
 
     def __call__(self, driver) -> bool:
         try:
-            value = _find_element(driver, self.locator).is_displayed()
+            value = driver.find_element(*self.locator).is_displayed()
             return not value
+        except NoSuchElementException:
+            return True
         except StaleElementReferenceException:
             return False
 
@@ -67,8 +70,10 @@ class WaitForDisabled(object):
 
     def __call__(self, driver) -> bool:
         try:
-            value = _find_element(driver, self.locator).is_enabled()
+            value = driver.find_element(*self.locator).is_enabled()
             return not value
+        except NoSuchElementException:
+            return False
         except StaleElementReferenceException:
             return False
 
@@ -79,8 +84,10 @@ class WaitForEnabled(object):
 
     def __call__(self, driver) -> bool:
         try:
-            value = _find_element(driver, self.locator).is_enabled()
+            value = driver.find_element(*self.locator).is_enabled()
             return value
+        except NoSuchElementException:
+            return False
         except StaleElementReferenceException:
             return False
 
@@ -91,12 +98,12 @@ class WaitForPresent(object):
 
     def __call__(self, driver) -> bool:
         try:
-            elements = _find_elements(driver, self.locator)
+            elements = driver.find_elements(*self.locator)
             if elements is not None and len(elements) > 0:
                 return True
             else:
                 return False
-        except NoSuchElementException as e:
+        except NoSuchElementException:
             return False
 
 
@@ -106,13 +113,28 @@ class WaitForNotPresent(object):
 
     def __call__(self, driver) -> bool:
         try:
-            elements = _find_elements(driver, self.locator)
+            elements = driver.find_elements(*self.locator)
             if elements is None:
                 return True
             else:
                 return False
-        except NoSuchElementException as e:
+        except NoSuchElementException:
             return True
+
+
+class WaitForAnyPresent(object):
+    def __init__(self, locators: [str]) -> None:
+        self.locators = locators
+
+    def __call__(self, driver) -> bool:
+        try:
+            from qaf.automation.ui.webdriver.qaf_web_element import QAFWebElement
+            for locator in self.locators:
+                if QAFWebElement(key=locator).is_present():
+                    return True
+            return False
+        except NoSuchElementException:
+            return False
 
 
 class WaitForText(object):
@@ -122,8 +144,10 @@ class WaitForText(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_text = _find_element(driver, self.locator).text
+            element_text = driver.find_element(*self.locator).text
             return self.text == element_text, element_text
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -135,8 +159,10 @@ class WaitForContainingText(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_text = _find_element(driver, self.locator).text
+            element_text = driver.find_element(*self.locator).text
             return self.text in element_text, element_text
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -148,8 +174,10 @@ class WaitForNotText(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_text = _find_element(driver, self.locator).text
+            element_text = driver.find_element(*self.locator).text
             return self.text != element_text, element_text
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -161,8 +189,10 @@ class WaitForNotContainingText(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_text = _find_element(driver, self.locator).text
+            element_text = driver.find_element(*self.locator).text
             return self.text not in element_text, element_text
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -174,8 +204,10 @@ class WaitForValue(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_value = _find_element(driver, self.locator).get_attribute("value")
+            element_value = driver.find_element(*self.locator).get_attribute("value")
             return self.value == element_value, element_value
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -187,26 +219,40 @@ class WaitForNotValue(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_value = _find_element(driver, self.locator).get_attribute("value")
+            element_value = driver.find_element(*self.locator).get_attribute("value")
             return self.value != element_value, element_value
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
 
 class WaitForSelected(object):
-    def __init__(self, element) -> None:
-        self.element = element
+    def __init__(self, locator: (str, str)) -> None:
+        self.locator = locator
 
-    def __call__(self, ignored) -> bool:
-        return self.element.is_selected()
+    def __call__(self, driver) -> bool:
+        try:
+            value = driver.find_element(*self.locator).is_selected()
+            return value
+        except NoSuchElementException:
+            return False
+        except StaleElementReferenceException:
+            return False
 
 
 class WaitForNotSelected(object):
-    def __init__(self, element) -> None:
-        self.element = element
+    def __init__(self, locator: (str, str)) -> None:
+        self.locator = locator
 
-    def __call__(self, ignored) -> bool:
-        return not self.element.is_selected()
+    def __call__(self, driver) -> bool:
+        try:
+            value = driver.find_element(*self.locator).is_selected()
+            return not value
+        except NoSuchElementException:
+            return False
+        except StaleElementReferenceException:
+            return False
 
 
 class WaitForAttribute(object):
@@ -217,8 +263,10 @@ class WaitForAttribute(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_value = _find_element(driver, self.locator).get_attribute(self.attr)
+            element_value = driver.find_element(*self.locator).get_attribute(self.attr)
             return self.value == element_value, element_value
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -231,8 +279,10 @@ class WaitForNotAttribute(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_value = _find_element(driver, self.locator).get_attribute(self.attr)
+            element_value = driver.find_element(*self.locator).get_attribute(self.attr)
             return self.value != element_value, element_value
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -244,8 +294,10 @@ class WaitForCssClass(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_class = _find_element(driver, self.locator).get_attribute("class")
+            element_class = driver.find_element(*self.locator).get_attribute("class")
             return self.class_name == element_class, element_class
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -257,8 +309,10 @@ class WaitForNotCssClass(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            element_class = _find_element(driver, self.locator).get_attribute("class")
+            element_class = driver.find_element(*self.locator).get_attribute("class")
             return self.class_name != element_class, element_class
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -271,8 +325,10 @@ class WaitForCssStyle(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            style_value = _find_element(driver, self.locator).value_of_css_property(self.value)
+            style_value = driver.find_element(*self.locator).value_of_css_property(self.value)
             return self.style_name == style_value, style_value
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
 
@@ -285,23 +341,9 @@ class WaitForNotCssStyle(object):
 
     def __call__(self, driver) -> (bool, Any):
         try:
-            style_value = _find_element(driver, self.locator).get_attribute(self.value)
+            style_value = driver.find_element(*self.locator).get_attribute(self.value)
             return self.style_name != style_value, style_value
+        except NoSuchElementException:
+            return False, None
         except StaleElementReferenceException:
             return False, None
-
-
-def _find_element(driver, by: tuple):
-    try:
-        return driver.find_element(*by)
-    except NoSuchElementException as e:
-        raise e
-    except WebDriverException as e:
-        raise e
-
-
-def _find_elements(driver, by: tuple):
-    try:
-        return driver.find_elements(*by)
-    except WebDriverException as e:
-        raise e

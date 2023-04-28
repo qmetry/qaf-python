@@ -54,7 +54,7 @@ class Step:
 
     def stop_behave_step(self, step) -> None:
         status = step_status(step)
-        if 'Fail' in status and CM().get_bool_for_key(AP.FAILURE_SCREENSHOT):
+        if 'Fail' in status and CM().get_bool_for_key(AP.FAILURE_SCREENSHOT, True):
             self.take_screen_shot()
         self.obj_check_point.type = status
         self.obj_check_point.subCheckPoints = SubCheckPoints().get_all_sub_check_points()
@@ -69,7 +69,7 @@ class Step:
         self.obj_check_point = None
 
     def take_screen_shot(self) -> None:
-        if qaf_test_base.QAFTestBase().has_driver():
+        if qaf_test_base.QAFTestBase().has_driver() and self.obj_check_point.screenshot == '':
             filename = os.path.join(os.getenv('REPORT_DIR'), 'img', str(uuid.uuid4()) + '.png')
             qaf_test_base.QAFTestBase().get_driver().save_screenshot(filename=filename)
             self.obj_check_point.screenshot = filename

@@ -19,8 +19,7 @@
 #  SOFTWARE.
 
 import os
-
-from appium import webdriver as appium_webdriver
+from typing import Union
 
 from qaf.automation.core.load_class import load_class
 
@@ -35,12 +34,6 @@ class QAFTestBase:
     __driver = None
 
     def start_driver(self) -> None:
-        """
-        Start web driver session by referring driver capabilities for AUT.
-
-        Returns:
-            None
-        """
         if QAFTestBase.__driver is not None:
             self.stop_driver()
 
@@ -48,45 +41,46 @@ class QAFTestBase:
         if 'appium' in driver_name:
             self.__start_appium_webdriver(driver_name)
         elif 'remote' in driver_name:
-            self.__start_remote_webdriver(driver_name)
+            self.__start_webdriver(driver_name, is_remote_driver=True)
         else:
-            self.__web_driver_manager(driver_name=driver_name)
             self.__start_webdriver(driver_name)
 
-    def __start_appium_webdriver(self, driver_name):
-        driver_name = driver_name.replace('driver', '')
+    def __start_appium_webdriver(self, driver_name) -> None:
+        from appium import webdriver
+        driver_name = driver_name.replace('driver', '').replace('remote', '')
         desired_capabilities = get_desired_capabilities(driver_name=driver_name)
-        driver = appium_webdriver.Remote(command_executor=get_command_executor(),
-                                         desired_capabilities=desired_capabilities)
-        QAFTestBase.__driver = qafwebdriver.QAFAppiumWebDriver(driver)
 
-    def __start_webdriver(self, driver_name):
-        driver_name = driver_name.replace('driver', '')
+        __under_laying_driver = webdriver.Remote(command_executor=get_command_executor(),
+                                                 desired_capabilities=desired_capabilities)
+        QAFTestBase.__driver = qafwebdriver.QAFWebDriver(__under_laying_driver)
 
+    def __start_webdriver(self, driver_name, is_remote_driver=False) -> None:
+        driver_name = driver_name.replace('driver', '').replace('remote', '')
         desired_capabilities = get_desired_capabilities(driver_name=driver_name)
-        driver_options = get_driver_options(driver_name=driver_name)
 
-        class_name = 'selenium.webdriver.{driver_name}.webdriver.WebDriver'. \
-            format(driver_name=driver_name)
+        if is_remote_driver:
+            # Selenium Remote Driver
+            driver_options = get_driver_options(driver_name=driver_name)
+            class_name = 'selenium.webdriver.remote.webdriver.WebDriver'
+            __under_laying_driver = load_class(class_name)(command_executor=get_command_executor(),
+                                                           options=driver_options,
+                                                           desired_capabilities=desired_capabilities)
+        else:
+            self.__web_driver_manager(driver_name=driver_name)
+            if CM().contains_key(AP.DRIVER_CLASS):
+                # Appium Driver
+                class_name = str(CM().get_str_for_key(AP.DRIVER_CLASS))
+                __under_laying_driver = load_class(class_name)(command_executor=get_command_executor(),
+                                                               desired_capabilities=desired_capabilities)
+            else:
+                # Selenium Local Driver
+                driver_options = get_driver_options(driver_name=driver_name)
+                class_name = 'selenium.webdriver.{driver_name}.webdriver.WebDriver'.format(driver_name=driver_name)
+                __under_laying_driver = load_class(class_name)(options=driver_options,
+                                                               desired_capabilities=desired_capabilities)
+        QAFTestBase.__driver = qafwebdriver.QAFWebDriver(__under_laying_driver)
 
-        driver = load_class(class_name)(options=driver_options,
-                                        desired_capabilities=desired_capabilities)
-
-        QAFTestBase.__driver = qafwebdriver.QAFWebDriver(driver)
-
-    def __start_remote_webdriver(self, driver_name):
-        browser_name = driver_name.replace('driver', '').replace('remote', '')
-
-        desired_capabilities = get_desired_capabilities(driver_name=browser_name)
-        driver_options = get_driver_options(driver_name=browser_name)
-
-        class_name = 'selenium.webdriver.remote.webdriver.WebDriver'
-        driver = load_class(class_name)(command_executor=get_command_executor(),
-                                        options=driver_options,
-                                        desired_capabilities=desired_capabilities)
-        QAFTestBase.__driver = qafwebdriver.QAFWebDriver(driver)
-
-    def __web_driver_manager(self, driver_name):
+    def __web_driver_manager(self, driver_name) -> None:
         driver_name = driver_name.replace('driver', '').replace('remote', '').lower()
         driver_name_caps = str(driver_name.replace('firefox', 'gecko')).capitalize()
         class_name = 'webdriver_manager.{driver_name}.{driver_name_caps}DriverManager'.format(driver_name=driver_name,
@@ -104,8 +98,9 @@ class QAFTestBase:
         """
         if QAFTestBase.__driver is not None:
             QAFTestBase.__driver.quit()
+            QAFTestBase.__driver = None
 
-    def get_driver(self):
+    def get_driver(self) -> qafwebdriver.QAFWebDriver:
         """
         Returns web driver object.
 
@@ -118,7 +113,7 @@ class QAFTestBase:
         return QAFTestBase.__driver
 
     @staticmethod
-    def has_driver():
+    def has_driver() -> bool:
         if QAFTestBase.__driver is None:
             return False
         return True

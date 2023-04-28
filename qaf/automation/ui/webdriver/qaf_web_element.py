@@ -48,13 +48,13 @@ class QAFWebElement(RemoteWebElement):
         self.cacheable = cacheable
 
         if len(key) > 0:
+            parent = qaf_test_base.QAFTestBase().get_driver()
             value = CM().get_str_for_key(key, default_value=key)
-            self.by, self.locator = get_find_by(value)
+            self.by, self.locator = get_find_by(value, w3c=parent.w3c)
             self.description = self.locator
             self.cacheable = cacheable
             self._id = -1
-            parent = qaf_test_base.QAFTestBase().get_driver()
-            RemoteWebElement.__init__(self, parent=parent, id_=self.id, w3c=parent.w3c)
+            RemoteWebElement.__init__(self, parent=parent, id_=self._id, w3c=parent.w3c)
 
         if CM().contains_key(AP.WEBELEMENT_COMMAND_LISTENERS):
             class_name = CM().get_str_for_key(AP.WEBELEMENT_COMMAND_LISTENERS)
@@ -80,10 +80,12 @@ class QAFWebElement(RemoteWebElement):
         web_element = super(QAFWebElement, self).find_element(by=by, value=value)
         qaf_web_element = QAFWebElement.create_instance_using_webelement(web_element)
         qaf_web_element._parent_element = self
-        qaf_web_element._parent = self._parent_element.parent
+        qaf_web_element._parent = self
+        qaf_web_element._id = web_element.id
         qaf_web_element.by = by
         qaf_web_element.locator = value
         qaf_web_element.description = value
+        qaf_web_element.cacheable = True
         return qaf_web_element
 
     def find_elements(self, by: Optional[str] = By.ID, value: Optional[str] = None):
@@ -92,10 +94,12 @@ class QAFWebElement(RemoteWebElement):
         for web_element in web_elements:
             qaf_web_element = QAFWebElement.create_instance_using_webelement(web_element)
             qaf_web_element._parent_element = self
-            qaf_web_element._parent = self._parent_element.parent
+            qaf_web_element._parent = self
+            qaf_web_element._id = web_element.id
             qaf_web_element.by = by
             qaf_web_element.locator = value
             qaf_web_element.description = value
+            qaf_web_element.cacheable = True
             qaf_web_elements.append(qaf_web_element)
         return qaf_web_elements
 
@@ -632,15 +636,8 @@ class QAFWebElement(RemoteWebElement):
 
         if params is None:
             params = {}
-
-        if self.id != -1:
-            params['id'] = self.id
-        else:
-            driver_command = Command.FIND_ELEMENT
-            parameters = {"using": self.by, "value": self.locator, "id": -1}
-            element = self.parent.execute(driver_command, parameters)['value']
-            self._id = element._id
-            params['id'] = self.id
+        self.load()
+        params['id'] = self._id
 
         command_tracker.parameters = params
         self.before_command(command_tracker)
@@ -664,6 +661,20 @@ class QAFWebElement(RemoteWebElement):
                 raise command_tracker.exception
 
         return command_tracker.response
+
+    def load(self):
+        if self._id == -1:
+            parameters = {"using": self.by, "value": self.locator, "id": self._id}
+            command_tracker = CommandTracker(Command.FIND_ELEMENT, parameters)
+            if self._parent_element is None:
+                self.before_command(command_tracker)
+                self._id = self.parent.load(self)
+                self.after_command(command_tracker)
+            else:
+                self._parent_element.load()
+                self.before_command(command_tracker)
+                self._id = self._parent_element.find_element(by=self.by, value=self.locator).id
+                self.after_command(command_tracker)
 
     @staticmethod
     def report(operation: str, outcome: bool, msg: str, **kwargs) -> None:
@@ -730,3 +741,7 @@ class QAFWebElement(RemoteWebElement):
             if command_tracker.has_exception():
                 for listener in self._listeners:
                     listener.on_exception(self, command_tracker)
+
+
+def _(key: str) -> QAFWebElement:
+    return QAFWebElement(key=key)
