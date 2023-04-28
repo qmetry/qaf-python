@@ -46,7 +46,7 @@ class WsRequest:
         self.before_command(command_tracker)
 
         try:
-            WsRequest.response = s.send(prep, **send_kwargs).json()
+            WsRequest.response = s.send(prep, **send_kwargs)
             command_tracker.response = WsRequest.response
 
         except Exception as e:
