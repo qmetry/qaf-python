@@ -47,7 +47,7 @@ class ConfigurationsManager(metaclass=Singleton):
             bool: Returns True If dict contains key else returns False
 
         """
-        return True if key in self.__dict else False
+        return self.__dict.__contains__(key)
 
     def set_object_for_key(self, key: str, value=object) -> None:
         """
@@ -150,5 +150,5 @@ class ConfigurationsManager(metaclass=Singleton):
         return default_value
 
     @staticmethod
-    def get_bundel(self):
+    def get_bundle():
         return ConfigurationsManager().__dict

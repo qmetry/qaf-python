@@ -44,7 +44,7 @@ class WsListener(DriverListener):
     def after_command(self, driver, command_tracker: CommandTracker) -> None:
         commandlog = CommandLog()
         commandlog.commandName = command_tracker.command
-        commandlog.result = command_tracker.response if command_tracker.response is not None else command_tracker.response['status_code']
+        commandlog.result = command_tracker.response.text if command_tracker.response is not None else command_tracker.response['status_code']
         commandlog.args = command_tracker.parameters
         CommandLogStack().add_command_log(commandlog)
         self.__logger.info(commandlog.to_string())

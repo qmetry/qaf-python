@@ -8,11 +8,23 @@ from qaf.automation.util.string_util import to_boolean
 
 
 class PropretyUtil(dict):
-    def __init__(self, name=None):
-        self.name = name
-        super(PropretyUtil, self).__init__()
+    def __init__(self,  *args, **kw):
+        super(PropretyUtil, self).__init__(*args, **kw)
 
-    def load(self, file):
+    def load(self, resources_path: str) -> None:
+        all_resources_path = resources_path.split(";")
+        for each_resource_path in all_resources_path:
+            if os.path.isdir(each_resource_path):
+                for root, dirs, files in os.walk(each_resource_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        self.__load_file(file_path)
+
+            elif os.path.isfile(each_resource_path):
+                # self.__load_files(each_resource_path)
+                self.__load_file(each_resource_path)
+
+    def __load_file(self, file):
         extension = os.path.splitext(file)[1]
         if extension in ('.properties', '.loc', '.wsc', '.ini'):
             with open(file, 'r', encoding='UTF-8') as file:
@@ -35,33 +47,29 @@ class PropretyUtil(dict):
                     self.set_property(key=key, value=json.dumps(value))
 
     def get_string(self, key, default=None):
-        return str(self.get(self, key, default))
+        return str(self.get(key, default))
 
     def get_boolean(self, key, default=None):
-        return to_boolean(self.get_string(self, key, default))
+        return to_boolean(self.get_string(key, default))
 
     def get_int(self, key, default=None):
-        return int(self.get(self, key, default))
+        return int(self.get(key, default))
 
     def set_property(self, key, value):
-        self.__dict__.__setitem__(key, value)
+        self.__setitem__(key, value)
 
     def get_property(self, key, default=None):
-        return self.get(self, key, default)
+        return self.get(key, default)
 
-    def __getitem__(self, key):
-        # We allow fall-through here, so values default to None
-        return self.__dict__.get(key, None)
+    def __getitem__(self, key, default=None):
+        return super(PropretyUtil, self).__getitem__(key) if self.__contains__(key) else default
 
     def get(self, key, default=None):
-        value = self.getRawValue(key)
-        if value is None:
-            return default
-        else:
-            return self.resolve(value)
+        value = self.get_raw_value(key)
+        return self.resolve(value) if value is not None else default
 
-    def getRawValue(self, key, default=None):
-        return self.__dict__.get(key, default)
+    def get_raw_value(self, key, default=None):
+        return self.__getitem__(key, default)
 
     def interpolate(self, rest, prefix, suffix, pattern, ext_dict={}):
         accum = []
@@ -129,7 +137,7 @@ class PropretyUtil(dict):
 
     def _evalexpr(self, expr, vars):
         try:
-            return eval(str(expr), self.__dict__, vars)
+            return eval(str(expr), self, vars)
         except NameError as ne:
             arg_index = expr.index('(')
             if not expr.startswith('__import') and arg_index > 0:
@@ -140,6 +148,6 @@ class PropretyUtil(dict):
                 method_name = qualified_name[m_index:]
                 m_expr = "__import__('{0}'){1}{2}".format(class_name, method_name, arg)
                 try:
-                    return eval(m_expr, self.__dict__, vars)
+                    return eval(m_expr, self, vars)
                 except Exception as ex:
                     raise ne
