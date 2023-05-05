@@ -244,7 +244,7 @@ class WsRequestBean:
         return json.dumps(self.to_dict())
 
     def fill_from_config(self, key):
-        _value = CM.get_bundle().get_raw_value(key, key)
+        _value = CM.get_bundle().get_raw_value(key, "{}")
         _dict = json.loads(_value)
         self.fill_data(_dict)
         return self
@@ -254,8 +254,10 @@ class WsRequestBean:
         _str = self.to_string()
 
         _str = CM.get_bundle().resolve(_str,_dict)
-        _defValues = json.loads(_str)['parameters']
-        _str = CM.get_bundle().resolve(_str,_dict,_defValues)
+        _dict = json.loads(_str)
+        if "parameters" in _dict:
+            _defValues = json.loads(_str)['parameters']
+            _str = CM.get_bundle().resolve(_str,_dict)
 
         self.fill_data(json.loads(_str))
 
