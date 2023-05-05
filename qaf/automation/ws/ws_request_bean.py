@@ -256,8 +256,8 @@ class WsRequestBean:
         _str = CM.get_bundle().resolve(_str,_dict)
         _dict = json.loads(_str)
         if "parameters" in _dict:
-            _defValues = json.loads(_str)['parameters']
-            _str = CM.get_bundle().resolve(_str,_dict)
+            _defValues = _dict['parameters']
+            _str = CM.get_bundle().resolve(_str,_defValues)
 
         self.fill_data(json.loads(_str))
 
