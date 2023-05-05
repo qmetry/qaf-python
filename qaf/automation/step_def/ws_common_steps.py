@@ -34,13 +34,13 @@ use_step_matcher("re")
 @step(u"user requests '(?P<api_key>[\S\s]+)' with data '(?P<data>[\S\s]+)'")
 def user_requests_with_data(context, api_key, data):
     ws_request_bean = WsRequestBean().fill_from_config(api_key)
-    ws_request_bean.resolve_parameters(data)
-    WsRequest().request(ws_request_bean)
+    WsRequest().request(ws_request_bean, data)
 
 
 @step(u"user requests '(?P<api_key>[\S\s]+)'")
 def user_requests(context, api_key):
-    WsRequest().request(WsRequestBean().fill_from_config(api_key))
+    ws_request_bean = WsRequestBean().fill_from_config(api_key)
+    WsRequest().request(ws_request_bean)
 
 
 ############################

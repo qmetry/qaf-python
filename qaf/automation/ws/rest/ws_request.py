@@ -39,7 +39,8 @@ class WsRequest:
             class_name = CM().get_str_for_key(AP.WEBSERVICE_COMMAND_LISTENERS)
             self.__listeners.append(load_class(class_name)())
 
-    def request(self, request_bean: WsRequestBean) -> dict:
+    def request(self, request_bean: WsRequestBean, params="{}") -> dict:
+        request_bean.resolve_parameters(params)
         command_tracker = CommandTracker(f'{request_bean.method} {request_bean.url}', request_bean.to_dict())
         s, prep, send_kwargs = self.prepare_request(request_bean)
         # self.before_command(command_tracker)
