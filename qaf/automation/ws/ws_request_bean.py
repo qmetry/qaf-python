@@ -272,4 +272,7 @@ class WsRequestBean:
         fld_name = fld_name.lower().replace("-", "")
         for attr in dir(self):
             if attr.lower() == fld_name.lower():
-                object.__setattr__(self, attr, val)
+                try:
+                    object.__setattr__(self, attr, val)
+                except:
+                    pass
