@@ -73,7 +73,7 @@ class ConfigurationsManager(metaclass=Singleton):
         Returns:
             Optional(object): Stored value for key
         """
-        return self.__dict[key] if self.contains_key(key) else default_value
+        return self.__dict.get(key, default_value)
 
     def get_str_for_key(self, key: str, default_value=None) -> str:
         """
@@ -100,7 +100,7 @@ class ConfigurationsManager(metaclass=Singleton):
         Returns:
             Optional(int): Stored value for key
         """
-        return int(self.__dict[key]) if self.contains_key(key) else default_value
+        return self.__dict.get_int(key, default_value)
 
     def get_bool_for_key(self, key: str, default_value=False) -> bool:
         """
@@ -113,7 +113,7 @@ class ConfigurationsManager(metaclass=Singleton):
         Returns:
             Optional(bool): Stored value for key
         """
-        return to_boolean(self.__dict[key]) if self.contains_key(key) else default_value
+        return self.__dict.get_boolean(key, default_value)
 
     def get_list_for_key(self, key: str, default_value=None) -> list:
         """

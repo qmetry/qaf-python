@@ -28,7 +28,6 @@ from qaf.automation.ui.webdriver.command_tracker import CommandTracker
 from qaf.automation.ws.rest.ws_listener import WsListener
 from qaf.automation.ws.ws_request_bean import WsRequestBean
 
-
 class WsRequest:
     response = None
 
@@ -41,12 +40,17 @@ class WsRequest:
             self.__listeners.append(load_class(class_name)())
 
     def request(self, request_bean: WsRequestBean) -> dict:
-        command_tracker = CommandTracker(request_bean.endPoint, request_bean.to_string)
+        command_tracker = CommandTracker(f'{request_bean.method} {request_bean.url}', request_bean.to_dict())
         s, prep, send_kwargs = self.prepare_request(request_bean)
-        self.before_command(command_tracker)
+        # self.before_command(command_tracker)
 
         try:
             WsRequest.response = s.send(prep, **send_kwargs)
+            request = WsRequest.response.request.prepare() if isinstance(WsRequest.response.request, requests.Request) else WsRequest.response.request
+            headers = '\r\n'.join(f'{k}: {v}' for k, v in request.headers.items())
+            body = '' if request.body is None else request.body.decode() if isinstance(request.body,
+                                                                                       bytes) else request.body
+            command_tracker = CommandTracker(f'{request.method} {request.url}{request.path_url}', {"headers":headers,"body":body })
             command_tracker.response = WsRequest.response
 
         except Exception as e:
@@ -71,9 +75,9 @@ class WsRequest:
             url=request_bean.url,
             headers=request_bean.headers,
             files=request_bean.files,
-            data=request_bean.data or {},
-            json=request_bean.json,
-            params=request_bean.params or {},
+            data=request_bean.body or request_bean.formParameters or {},
+            # json=request_bean.json,
+            params=request_bean.queryParameters or {},
             auth=request_bean.auth,
             cookies=request_bean.cookies,
             hooks=request_bean.hooks,

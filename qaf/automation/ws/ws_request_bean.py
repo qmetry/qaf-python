@@ -33,11 +33,14 @@ class WsRequestBean:
     def __init__(self):
         self.__baseUrl = ""
         self.__endPoint = ""
-        self.__to_string = {}
+        self.__reference=""
 
         self.__method = "GET"  # POST, PUT, DELETE, HEAD, PATCH, and OPTIONS.
-        self.__params = None  # {'q': 'keyword'} or [{'q': 'keyword'}]
-        self.__data = None  # {'key':'value'}
+        self.__queryParameters = None  # {'q': 'keyword'} or [{'q': 'keyword'}]
+        self.__formParameters = None  # {'q': 'keyword'} or [{'q': 'keyword'}]
+        self.__parameters = None  # {'q': 'keyword'} or [{'q': 'keyword'}]
+
+        self.__body = None  # {'key':'value'}
         self.__headers = default_headers()  # {'Accept': 'application/vnd.github.v3.text-match+json'}
         self.__cookies = None  # {'key':'value'}
         self.__files = None  # {'upload_file': open('file.txt','rb')}
@@ -50,6 +53,14 @@ class WsRequestBean:
         self.__verify = None  # Boolean
         self.__cert = None  # ('/path/server.crt', '/path/key')
         self.__json = None  # {'key':'value'}
+
+    @property
+    def reference(self):
+        return self.__reference
+
+    @reference.setter
+    def reference(self, value):
+        self.__reference = value
 
     @property
     def method(self):
@@ -67,20 +78,46 @@ class WsRequestBean:
         return url
 
     @property
-    def params(self):
-        return self.__params
+    def parameters(self):
+        return self.__parameters
 
-    @params.setter
-    def params(self, value):
-        self.__params = value
+    @parameters.setter
+    def parameters(self, value):
+        self.__parameters = self._setDictFld(self.__parameters,value)
 
     @property
-    def data(self):
-        return self.__data
+    def queryParameters(self):
+        return self.__queryParameters
 
-    @data.setter
-    def data(self, value):
-        self.__data = value
+    @queryParameters.setter
+    def queryParameters(self, value):
+        self.__queryParameters = self._setDictFld(self.__queryParameters,value)
+
+
+    @property
+    def formParameters(self):
+        return self.__formParameters
+
+    @formParameters.setter
+    def formParameters(self, value):
+        self.__formParameters = self._setDictFld(self.__formParameters,value)
+
+    def _setDictFld(self,disc_fld, value):
+        _dict = json.loads(value) if isinstance(value, str) else value
+
+        if disc_fld is None:
+            disc_fld = _dict
+        else:
+            disc_fld.update(_dict)
+        return disc_fld
+
+    @property
+    def body(self):
+        return self.__body
+
+    @body.setter
+    def body(self, value):
+        self.__body = value
 
     @property
     def headers(self):
@@ -88,7 +125,7 @@ class WsRequestBean:
 
     @headers.setter
     def headers(self, value):
-        self.__headers = value
+        self.__headers = self._setDictFld(self.__headers, value)
 
     @property
     def cookies(self):
@@ -176,14 +213,6 @@ class WsRequestBean:
         self.__cert = value
 
     @property
-    def json(self):
-        return self.__json
-
-    @json.setter
-    def json(self, value):
-        self.__json = value
-
-    @property
     def baseUrl(self):
         return self.__baseUrl if is_not_blank(self.__baseUrl) else CM().get_str_for_key(
             AP.SELENIUM_BASE_URL)
@@ -200,30 +229,45 @@ class WsRequestBean:
     def endPoint(self, value):
         self.__endPoint = value
 
-    @property
-    def to_string(self):
-        return self.__to_string
+    def to_dict(self):
+        dict_to_ret = {}
+        for attr in dir(self):
 
-    @to_string.setter
-    def to_string(self, value):
-        self.__to_string = value
+            if not attr.startswith("_"):
+                attr_val = self.__getattribute__(attr)
+                if type(attr_val) in {bool, int, str, list, dict}:
+                    dict_to_ret[attr] = attr_val
+
+        return dict_to_ret
+
+    def to_string(self):
+        return json.dumps(self.to_dict())
 
     def fill_from_config(self, key):
-        _value = CM().get_object_for_key(key, key)
+        _value = CM.get_bundle().get_raw_value(key, key)
         _dict = json.loads(_value)
         self.fill_data(_dict)
         return self
 
     def resolve_parameters(self, data):
-        _dict = json.loads(data)
-        self.fill_data(_dict)
+        _dict = json.loads(data) if isinstance(data, str) else data
+        _str = self.to_string()
 
-    def fill_data(self, dict):
-        if "reference" in dict:
-            self.fill_from_config(dict["reference"])
+        _str = CM.get_bundle().resolve(_str,_dict)
+        _defValues = json.loads(_str)['parameters']
+        _str = CM.get_bundle().resolve(_str,_dict,_defValues)
 
-        self.to_string = dict
+        self.fill_data(json.loads(_str))
 
-        for key, value in dict.items():
-            if hasattr(self, key):
-                object.__setattr__(self, key, value)
+    def fill_data(self, kv_dict):
+        if "reference" in kv_dict:
+            self.fill_from_config(kv_dict["reference"])
+
+        for key, value in kv_dict.items():
+            self.set_field_if_exist(key,value)
+
+    def set_field_if_exist(self, fld_name, val):
+        fld_name = fld_name.lower().replace("-", "")
+        for attr in dir(self):
+            if attr.lower() == fld_name.lower():
+                object.__setattr__(self, attr, val)
