@@ -114,7 +114,7 @@ class WaitForNotPresent(object):
     def __call__(self, driver) -> bool:
         try:
             elements = driver.find_elements(*self.locator)
-            if elements is None:
+            if elements is None or not elements:
                 return True
             else:
                 return False
@@ -130,7 +130,7 @@ class WaitForAnyPresent(object):
         try:
             from qaf.automation.ui.webdriver.qaf_web_element import QAFWebElement
             for locator in self.locators:
-                if QAFWebElement(key=locator).is_present():
+                if QAFWebElement(locator=locator).is_present():
                     return True
             return False
         except NoSuchElementException:

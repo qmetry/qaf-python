@@ -27,8 +27,8 @@ from selenium.webdriver.remote.webelement import WebElement as RemoteWebElement
 from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.core.message_type import MessageType
+from qaf.automation.ui.util.locator_util import parse_locator
 from qaf.automation.ui.webdriver import qaf_test_base
-from qaf.automation.ui.webdriver.qaf_find_by import get_find_by
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 from qaf.automation.core.load_class import load_class
 from qaf.automation.core.reporter import Reporter
@@ -38,21 +38,21 @@ from qaf.automation.ui.webdriver.command_tracker import Stage, CommandTracker
 
 
 class QAFWebElement(RemoteWebElement):
-    def __init__(self, key: str, cacheable: Optional[bool] = False) -> None:
+    def __init__(self, locator: str, parent_locator:Optional[str] = '', cacheable: Optional[bool] = False) -> None:
 
         self.locator = None
         self.by = None
         self.description = None
-        self._parent_element = None
+        self._parent_element = QAFWebElement(parent_locator) if len(parent_locator) > 0 else None
         self._listeners = []
         self.cacheable = cacheable
+        self.metadata={}
 
-        if len(key) > 0:
+        if len(locator) > 0:
             parent = qaf_test_base.QAFTestBase().get_driver()
-            value = CM().get_str_for_key(key, default_value=key)
-            self.by, self.locator = get_find_by(value, w3c=parent.w3c)
-            self.description = self.locator
-            self.cacheable = cacheable
+            value = CM().get_str_for_key(locator, default_value=locator)
+            self.by, self.locator, self.description, self.metadata = parse_locator(value)
+            self.cacheable = self.cacheable or self.metadata.get("cacheable", False)
             self._id = -1
             RemoteWebElement.__init__(self, parent=parent, id_=self._id, w3c=parent.w3c)
 
@@ -71,10 +71,10 @@ class QAFWebElement(RemoteWebElement):
 
         cls._id = remote_webelement.id
         cls._w3c = remote_webelement._w3c
-        return cls(key='')
+        return cls(locator='')
 
     def get_description(self, msg: Optional[str] = '') -> str:
-        return msg if len(msg) > 0 else self.locator
+        return msg if len(msg) > 0 else self.description
 
     def find_element(self, by: Optional[str] = By.ID, value: Optional[str] = None):
         web_element = super(QAFWebElement, self).find_element(by=by, value=value)
@@ -743,5 +743,5 @@ class QAFWebElement(RemoteWebElement):
                     listener.on_exception(self, command_tracker)
 
 
-def _(key: str) -> QAFWebElement:
-    return QAFWebElement(key=key)
+def _(locator: str) -> QAFWebElement:
+    return QAFWebElement(locator=locator)

@@ -24,8 +24,8 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.ui import js_toolkit
+from qaf.automation.ui.util.locator_util import parse_locator
 from qaf.automation.ui.util.qaf_wd_expected_conditions import WaitForAjax, WaitForAnyPresent
-from qaf.automation.ui.webdriver.qaf_find_by import get_find_by
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from appium.webdriver import Remote as AppiumDriver
@@ -72,9 +72,11 @@ class QAFWebDriver(RemoteWebDriver):
 
     def find_element(self, by: Optional[str] = By.ID, value: Optional[str] = None,
                      key: Optional[str] = None) -> qafwebelement.QAFWebElement:
+        description = value
+        metadata = {}
         if key is not None and len(key) > 0:
             value = CM().get_str_for_key(key, default_value=key)
-            by, value = get_find_by(value, w3c=self.w3c)
+            by, value, description, metadata = parse_locator(value, w3c=self.w3c)
 
         web_element = super(QAFWebDriver, self).find_element(by=by, value=value)
         qaf_web_element = qafwebelement.QAFWebElement.create_instance_using_webelement(web_element)
@@ -82,14 +84,17 @@ class QAFWebDriver(RemoteWebDriver):
         qaf_web_element._id = web_element.id
         qaf_web_element.by = by
         qaf_web_element.locator = value
-        qaf_web_element.description = value
+        qaf_web_element.description = description
+        qaf_web_element.metadata = metadata
         return qaf_web_element
 
     def find_elements(self, by: Optional[str] = By.ID, value: Optional[str] = None, key: Optional[str] = None) -> [
         qafwebelement.QAFWebElement]:
+        description = value
+        metadata = {}
         if key is not None and len(key) > 0:
             value = CM().get_str_for_key(key, default_value=key)
-            by, value = get_find_by(value, w3c=self.w3c)
+            by, value, description, metadata = parse_locator(value, w3c=self.w3c)
 
         web_elements = super(QAFWebDriver, self).find_elements(by=by, value=value)
         qaf_web_elements = []
@@ -99,7 +104,9 @@ class QAFWebDriver(RemoteWebDriver):
             qaf_web_element._id = web_element.id
             qaf_web_element.by = by
             qaf_web_element.locator = value
-            qaf_web_element.description = value
+            qaf_web_element.description = description
+            qaf_web_element.metadata = metadata
+            qaf_web_element.cacheable=True # list element needs to be cacheable
             qaf_web_elements.append(qaf_web_element)
         return qaf_web_elements
 
