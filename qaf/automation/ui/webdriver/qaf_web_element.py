@@ -20,25 +20,31 @@
 
 from typing import Optional
 
-from selenium.common.exceptions import TimeoutException
+from hamcrest import contains_string
+from hamcrest.core.matcher import Matcher
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.remote.webelement import WebElement as RemoteWebElement
-from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.core.message_type import MessageType
+from qaf.automation.ui.util.dynamic_wait import DynamicWait
 from qaf.automation.ui.util.locator_util import parse_locator
+from qaf.automation.ui.util.qaf_element_expected_conditions import ElementToBeVisible, ElementToBeEnabled, \
+    PresenceOfElement, ElementHasText, ElementTextMatches, ElementHasValue, \
+    ElementValueMatches, ElementToBeSelected, ElementHasAttribute, ElementAttributeMatches, \
+    ElementHasCssClass, ElementHasCssStyle, ElementCssClassMatches, ElementCssStyleMatches
 from qaf.automation.ui.webdriver import qaf_test_base
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 from qaf.automation.core.load_class import load_class
 from qaf.automation.core.reporter import Reporter
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
-from qaf.automation.ui.util.qaf_wd_expected_conditions import *
+from typing import Any
 from qaf.automation.ui.webdriver.command_tracker import Stage, CommandTracker
 
 
 class QAFWebElement(RemoteWebElement):
-    def __init__(self, locator: str, parent_locator:Optional[str] = '', cacheable: Optional[bool] = False) -> None:
+    def __init__(self, locator: str, parent_locator: Optional[str] = '', cacheable: Optional[bool] = False) -> None:
 
         self.locator = None
         self.by = None
@@ -46,7 +52,7 @@ class QAFWebElement(RemoteWebElement):
         self._parent_element = QAFWebElement(parent_locator) if len(parent_locator) > 0 else None
         self._listeners = []
         self.cacheable = cacheable
-        self.metadata={}
+        self.metadata = {}
 
         if len(locator) > 0:
             parent = qaf_test_base.QAFTestBase().get_driver()
@@ -104,163 +110,119 @@ class QAFWebElement(RemoteWebElement):
         return qaf_web_elements
 
     def wait_for_visible(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = 'Wait time out for ' + self.description + ' to be visible'
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForVisible((self.by, self.locator)), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementToBeVisible(), message)
 
     def wait_for_not_visible(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotVisible((self.by, self.locator))
-        )
+        message = 'Wait time out for ' + self.description + ' to be not visible'
+        return qaf_web_element_wait(self, wait_time).until_not(ElementToBeVisible(), message)
 
     def wait_for_disabled(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be disabled"
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForDisabled((self.by, self.locator)), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(ElementToBeEnabled(), message)
 
     def wait_for_enabled(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be enabled"
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForEnabled((self.by, self.locator)), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementToBeEnabled(), message)
 
     def wait_for_present(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be present"
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForPresent((self.by, self.locator)), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(PresenceOfElement(), message)
 
     def wait_for_not_present(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to not be present"
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotPresent((self.by, self.locator)), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(PresenceOfElement(), message)
 
     def wait_for_text(self, text_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " text " + text_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForText((self.by, self.locator), text_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementHasText(text_), message)
 
-    def wait_for_containing_text(self, text_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
-        message = "Wait time out for " + self.description + " containing text " + text_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForContainingText((self.by, self.locator), text_), message
-        )
+    def wait_for_matches_text(self, text_matcher: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description} text matches {text_matcher}'
+        return qaf_web_element_wait(self, wait_time).until(ElementTextMatches(text_matcher), message)
 
     def wait_for_not_text(self, text_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " text not " + text_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotText((self.by, self.locator), text_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(ElementHasText(text_), message)
 
-    def wait_for_not_containing_text(self, text_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
-        message = "Wait time out for " + self.description + " containing text not " + text_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotContainingText((self.by, self.locator), text_), message
-        )
+    def wait_for_not_matches_text(self, text_matcher: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description} containing text not {text_matcher}'
+        return qaf_web_element_wait(self, wait_time).until_not(ElementTextMatches(text_matcher), message)
 
     def wait_for_value(self, value_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " value " + value_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForValue((self.by, self.locator), value_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementHasValue(value_), message)
 
     def wait_for_not_value(self, value_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " value not " + value_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotValue((self.by, self.locator), value_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(ElementHasValue(value_), message)
+
+    def wait_for_value_matches(self, value_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description} value {value_}'
+        return qaf_web_element_wait(self, wait_time).until(ElementValueMatches(value_), message)
+
+    def wait_for_not_value_matches(self, value_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description} value not {value_}'
+        return qaf_web_element_wait(self, wait_time).until_not(ElementValueMatches(value_), message)
 
     def wait_for_selected(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " to be selected"
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForSelected((self.by, self.locator)), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementToBeSelected(), message)
 
     def wait_for_not_selected(self, wait_time: Optional[int] = 0) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " not to be selected"
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotSelected((self.by, self.locator)), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(ElementToBeSelected(), message)
 
     def wait_for_attribute(self, attr_: str, value_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " " + attr_ + " = " + value_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForAttribute((self.by, self.locator), attr_, value_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementHasAttribute(attr_, value_), message)
 
     def wait_for_not_attribute(self, attr_: str, value_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " " + attr_ + " != " + value_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotAttribute((self.by, self.locator), attr_, value_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(ElementHasAttribute(attr_, value_), message)
+
+    def wait_for_attribute_matches(self, attr_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description } {attr_} {value_}'
+        return qaf_web_element_wait(self, wait_time).until(ElementAttributeMatches(attr_, value_), message)
+
+    def wait_for_not_attribute_matches(self, attr_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description } {attr_} not {value_}'
+        return qaf_web_element_wait(self, wait_time).until_not(ElementAttributeMatches(attr_, value_), message)
 
     def wait_for_css_class(self, class_name_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have css class " + class_name_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForCssClass((self.by, self.locator), class_name_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementHasCssClass(class_name_), message)
 
     def wait_for_not_css_class(self, class_name_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have not css class " + class_name_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotCssClass((self.by, self.locator), class_name_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(ElementHasCssClass(class_name_), message)
+
+    def wait_for_css_class_matches(self, class_name_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description} have css class {class_name_}'
+        return qaf_web_element_wait(self, wait_time).until(ElementCssClassMatches(class_name_), message)
+
+    def wait_for_not_css_class_matches(self, class_name_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
+        message = f'Wait time out for {self.description} have not css class {class_name_}'
+        return qaf_web_element_wait(self, wait_time).until_not(ElementCssClassMatches(class_name_), message)
 
     def wait_for_css_style(self, style_name_: str, value_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have css style " + style_name_ + "=" + value_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForCssStyle((self.by, self.locator), style_name_, value_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until(ElementHasCssStyle(style_name_, value_), message)
 
     def wait_for_not_css_style(self, style_name_: str, value_: str, wait_time: Optional[int] = 0) -> (bool, Any):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = "Wait time out for " + self.description + " have not css style " + style_name_ + "=" + value_
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForNotCssStyle((self.by, self.locator), style_name_, value_), message
-        )
+        return qaf_web_element_wait(self, wait_time).until_not(ElementHasCssStyle(style_name_, value_), message)
+
+    def wait_for_css_style_matches(self, style_name_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (
+    bool, Any):
+        message = f'Wait time out for {self.description} have css style {style_name_} {value_}'
+        return qaf_web_element_wait(self, wait_time).until(ElementCssStyleMatches(style_name_, value_), message)
+
+    def wait_for_not_css_style_matches(self, style_name_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (
+    bool, Any):
+        message = f'Wait time out for {self.description} have not css style {style_name_} {value_}'
+        return qaf_web_element_wait(self, wait_time).until_not(ElementCssStyleMatches(style_name_, value_),
+                                                               message)
 
     def __ensure_present(self, msg: Optional[str] = '') -> bool:
         outcome = True
@@ -340,7 +302,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasText(text_)(self)
+            outcome = return_value[0]
+            actaul_ = return_value[1]
         self.report("text", outcome, msg, expected=text_, actual=actaul_)
         return outcome
 
@@ -351,11 +315,13 @@ class QAFWebElement(RemoteWebElement):
         actaul_ = ''
         msg = self.get_description(msg)
         try:
-            return_value = self.wait_for_containing_text(text_)
+            return_value = self.wait_for_matches_text(contains_string(text_))
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementTextMatches(contains_string(text_))(self)
+            outcome = return_value[0]
+            actaul_ = return_value[1]
         self.report("text", outcome, msg, expected=text_, actual=actaul_)
         return outcome
 
@@ -370,7 +336,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasText(text_)(self)
+            outcome = not return_value[0]
+            actaul_ = return_value[1]
         self.report("nottext", outcome, msg, expected=text_, actual=actaul_)
         return outcome
 
@@ -381,11 +349,13 @@ class QAFWebElement(RemoteWebElement):
         actaul_ = ''
         msg = self.get_description(msg)
         try:
-            return_value = self.wait_for_not_containing_text(text_)
+            return_value = self.wait_for_not_matches_text(contains_string(text_))
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementTextMatches(contains_string(text_))(self)
+            outcome = not return_value[0]
+            actaul_ = return_value[1]
         self.report("nottext", outcome, msg, expected=text_, actual=actaul_)
         return outcome
 
@@ -400,7 +370,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasValue(value_)(self)
+            outcome = return_value[0]
+            actaul_ = return_value[1]
         self.report("value", outcome, msg, expected=value_, actual=actaul_)
         return outcome
 
@@ -415,7 +387,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasValue(value_)(self)
+            outcome = not return_value[0]
+            actaul_ = return_value[1]
         self.report("notvalue", outcome, msg, expected=value_, actual=actaul_)
         return outcome
 
@@ -450,7 +424,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasAttribute(attr_, value_)(self)
+            outcome = return_value[0]
+            actaul_ = return_value[1]
         self.report("attribute", outcome, msg, op=attr_, expected=value_, actual=actaul_)
         return outcome
 
@@ -465,7 +441,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasAttribute(attr_, value_)(self)
+            outcome = not return_value[0]
+            actaul_ = return_value[1]
         self.report("notattribute", outcome, msg, op=attr_, expected=value_, actual=actaul_)
         return outcome
 
@@ -480,7 +458,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasCssClass(class_name_)(self)
+            outcome = return_value[0]
+            actaul_ = return_value[1]
         self.report("cssclass", outcome, msg, expected=class_name_, actual=actaul_)
         return outcome
 
@@ -495,7 +475,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasCssClass(class_name_)(self)
+            outcome = not return_value[0]
+            actaul_ = return_value[1]
         self.report("notcssclass", outcome, msg, expected=class_name_, actual=actaul_)
         return outcome
 
@@ -510,7 +492,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasCssStyle(style_name_, value_)(self)
+            outcome = return_value[0]
+            actaul_ = return_value[1]
         self.report("cssstyle", outcome, msg, op=style_name_, expected=value_, actual=actaul_)
         return outcome
 
@@ -525,7 +509,9 @@ class QAFWebElement(RemoteWebElement):
             outcome = return_value[0]
             actaul_ = return_value[1]
         except TimeoutException:
-            outcome = False
+            return_value = ElementHasCssStyle(style_name_, value_)(self)
+            outcome = not return_value[0]
+            actaul_ = return_value[1]
         self.report("notcssstyle", outcome, msg, op=style_name_, expected=value_, actual=actaul_)
         return outcome
 
@@ -681,25 +667,25 @@ class QAFWebElement(RemoteWebElement):
         key = "element." + operation + "." + ("pass" if outcome else "fail")
         message_format = CM().get_str_for_key(key)
 
-        not_op_pass_format = "Expected %(expected)s not {operation} : " \
-                             "Actual %(actual)s not {operation}"
-        not_op_fail_format = "Expected %(expected)s not {operation} : " \
-                             "Actual %(actual)s {operation}"
-        op_pass_format = "Expected %(expected)s {operation} : " \
-                         "Actual %(actual)s {operation}"
-        op_fail_format = "Expected %(expected)s {operation} : " \
-                         "Actual %(actual)s not {operation}"
+        not_op_pass_format = "Expected \"{0}\" should not be {operation} : " \
+                             "Actual was not {operation}"
+        not_op_fail_format = "Expected \"{0}\" should not be {operation} : " \
+                             "Actual was {operation}"
+        op_pass_format = "Expected  \"{0}\" should  be {operation}: " \
+                         "Actual was {operation}"
+        op_fail_format = "Expected \"{0}\" should be {operation} : " \
+                         "Actual was not {operation}"
 
-        not_op_val_format = "Expected %(op)s {operation} should not be %(expected)s : " \
-                            "Actual %(op)s {operation} is %(actual)s"
-        op_val_format = "Expected %(op)s {operation} should be %(expected)s : " \
-                        "Actual %(op)s {operation} is %(actual)s"
+        not_op_val_format = "Expected \"{0}\" %(op)s {operation} should not be \"%(expected)s\" : " \
+                            "Actual was \"%(actual)s\""
+        op_val_format = "Expected \"{0}\" %(op)s {operation} should be \"%(expected)s\" : " \
+                        "Actual was \"%(actual)s\""
 
         if message_format is None:
             condition_1 = not_op_val_format if (kwargs is not None and len(
-                kwargs) > 2) else (not_op_pass_format if outcome else not_op_fail_format)
+                kwargs) >= 2) else (not_op_pass_format if outcome else not_op_fail_format)
 
-            condition_2 = op_val_format if (kwargs is not None and len(kwargs) > 2) else (
+            condition_2 = op_val_format if (kwargs is not None and len(kwargs) >= 2) else (
                 op_pass_format if outcome else op_fail_format)
 
             message_format = condition_1 if operation.startswith('not') else condition_2
@@ -708,6 +694,8 @@ class QAFWebElement(RemoteWebElement):
         message = message_format.format(msg)
 
         if kwargs is not None and len(kwargs.keys()) > 0:
+            if "op" not in kwargs:
+                kwargs["op"]=""
             message = message % kwargs
         if outcome:
             Reporter.log_with_screenshot(message, MessageType.Pass)
@@ -741,6 +729,11 @@ class QAFWebElement(RemoteWebElement):
             if command_tracker.has_exception():
                 for listener in self._listeners:
                     listener.on_exception(self, command_tracker)
+
+
+def qaf_web_element_wait(ele: QAFWebElement, timeout, ignored_exceptions=None) -> \
+        DynamicWait[QAFWebElement]:
+    return DynamicWait[QAFWebElement](ele, timeout, ignored_exceptions=ignored_exceptions)
 
 
 def _(locator: str) -> QAFWebElement:

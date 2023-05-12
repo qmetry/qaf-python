@@ -47,13 +47,16 @@ class PropretyUtil(dict):
                     self.set_property(key=key, value=json.dumps(value))
 
     def get_string(self, key, default=None):
-        return str(self.get(key, default))
+        val = self.get(key,default)
+        return str(val) if val is not None else None
 
     def get_boolean(self, key, default=None):
-        return to_boolean(self.get_string(key, default))
+        val = self.get_string(key,default)
+        return to_boolean(val) if val is not None else None
 
-    def get_int(self, key, default=None):
-        return int(self.get(key, default))
+    def get_int(self, key, default=0):
+        val = self.get(key,default)
+        return int(val) if val is not None else None
 
     def set_property(self, key, value):
         self.__setitem__(key, value)

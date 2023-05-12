@@ -46,8 +46,8 @@ class QAFWebDriverListener(DriverListener):
             selenium_log = CommandLog()
             selenium_log.commandName = command_tracker.command
             selenium_log.result = 'OK' if (
-                        command_tracker.response is None or 'status' not in command_tracker.response) else \
-            command_tracker.response['status']
+                        command_tracker.response is None or 'value' not in command_tracker.response) else \
+            str(command_tracker.response['value'])
             selenium_log.args = command_tracker.parameters
             CommandLogStack().add_command_log(selenium_log)
             self.__logger.info(selenium_log.to_string())

@@ -24,6 +24,7 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.ui import js_toolkit
+from qaf.automation.ui.util.dynamic_wait import DynamicWait
 from qaf.automation.ui.util.locator_util import parse_locator
 from qaf.automation.ui.util.qaf_wd_expected_conditions import WaitForAjax, WaitForAnyPresent
 from selenium.webdriver.common.by import By
@@ -106,22 +107,17 @@ class QAFWebDriver(RemoteWebDriver):
             qaf_web_element.locator = value
             qaf_web_element.description = description
             qaf_web_element.metadata = metadata
-            qaf_web_element.cacheable=True # list element needs to be cacheable
+            qaf_web_element.cacheable = True  # list element needs to be cacheable
             qaf_web_elements.append(qaf_web_element)
         return qaf_web_elements
 
     def wait_for_ajax(self, jstoolkit: Optional[str] = js_toolkit.GLOBAL_WAIT_CONDITION, wait_time: Optional[int] = 0):
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT) \
-            if wait_time == 0 else wait_time
         message = 'Wait time out for ajax to complete'
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
-            WaitForAjax(jstoolkit), message
-        )
+        return qaf_webdriver_wait(self, wait_time).until(WaitForAjax(jstoolkit), message)
 
-    def wait_for_any_present(self, locators: [str]) -> bool:
-        wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT, 0)
+    def wait_for_any_present(self, locators: [str], wait_time: Optional[int] = 0) -> bool:
         message = "Wait time out for any of elements [%s] to be present".format(','.join(map(str, locators)))
-        return WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
+        return qaf_webdriver_wait(self, wait_time).until(
             WaitForAnyPresent(locators), message
         )
 
@@ -184,3 +180,8 @@ class QAFWebDriver(RemoteWebDriver):
     @property
     def to_appium_webdriver(self) -> AppiumDriver:
         return self if self.__under_laying_driver is None else self.__under_laying_driver
+
+
+def qaf_webdriver_wait(driver: QAFWebDriver, timeout,
+                       ignored_exceptions=None) -> DynamicWait[QAFWebDriver]:
+    return DynamicWait[QAFWebDriver](driver, timeout, ignored_exceptions=ignored_exceptions)

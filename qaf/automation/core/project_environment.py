@@ -43,7 +43,7 @@ class ProjectEnvironment:
 
     @staticmethod
     def set_executable_path():
-        executable_path = CM().get_str_for_key(AP.EXECUTABLE_PATH)
+        executable_path = CM().get_str_for_key(AP.EXECUTABLE_PATH,"")
         all_executable_path = executable_path.split(";")
         for each_executable_path in all_executable_path:
             os.environ["PATH"] += os.pathsep + each_executable_path
