@@ -53,6 +53,8 @@ __all__ = [
     'prettify',
     'slugify',
     'to_boolean',
+    'decode_base64',
+    'encode_base64',
 ]
 
 # compiled regex

@@ -1,3 +1,25 @@
+# -*- coding: utf-8 -*-
+#  Copyright (c) 2022 Infostretch Corporation
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#  #
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#  SOFTWARE.
+
+# @Author: Chirag Jayswal
 import time
 
 from typing import TypeVar, Generic
@@ -24,11 +46,6 @@ class DynamicWait(Generic[T]):
                     - ignored_exceptions - iterable structure of exception classes ignored during calls.
                       By default, it contains NoSuchElementException only.
 
-                   Example:
-                    from selenium.webdriver.support.ui import WebDriverWait \n
-                    element = DynamicWait(driver, 10).until(lambda x: x.find_element_by_id("someId")) \n
-                    is_disappeared = WebDriverWait(driver, 30, 1, (ElementNotVisibleException)).\ \n
-                                until_not(lambda x: x.find_element_by_id("someId").is_displayed())
                 """
         self._inject = inject
         self._timeout = ConfigurationsManager.get_bundle().get_int(ApplicationProperties.SELENIUM_WAIT_TIMEOUT, 5) \
@@ -50,7 +67,7 @@ class DynamicWait(Generic[T]):
             type(self), str(self._inject))
 
     def until(self, method, message=''):
-        """Calls the method provided with the driver as an argument until the \
+        """Calls the method provided with the object of generic type as an argument until the \
         return value is not False."""
         screen = None
         stacktrace = None
@@ -73,7 +90,7 @@ class DynamicWait(Generic[T]):
         raise TimeoutException(message, screen, stacktrace)
 
     def until_not(self, method, message=''):
-        """Calls the method provided with the driver as an argument until the \
+        """Calls the method provided with the object of generic type as an argument until the \
         return value is False."""
         screen = None
         stacktrace = None

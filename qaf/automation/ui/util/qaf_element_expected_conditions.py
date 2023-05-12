@@ -18,12 +18,18 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+
 from typing import Any
 
 from hamcrest import equal_to, starts_with, ends_with, contains_string, equal_to_ignoring_case, matches_regexp
 from hamcrest.core.matcher import Matcher
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
+
+"""
+@Author: Chirag Jayswal
+Collection of different element conditions that can be used with DymamicWait[QAFWebElement].
+"""
 
 
 class ElementToBeVisible(object):

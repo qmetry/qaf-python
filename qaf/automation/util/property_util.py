@@ -1,3 +1,24 @@
+# -*- coding: utf-8 -*-
+#  Copyright (c) 2022 Infostretch Corporation
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#  #
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#  SOFTWARE.
+
 import json
 import os
 import random
@@ -8,7 +29,18 @@ from qaf.automation.util.string_util import to_boolean, decode_base64
 
 
 class PropretyUtil(dict):
-    def __init__(self,  *args, **kw):
+    """
+    @Author: Chirag Jayswal
+
+    This class is represents similar features as PropertyUtil in qaf-java version.
+    It supports
+    - parameter-interpolation: https://qmetry.github.io/qaf/latest/properties_configuration.html#parameter-interpolation
+    - encryption: https://qmetry.github.io/qaf/latest/different_ways_of_providing_prop.html#encryption-support
+    - file types: properties, wsc, wscj, loc, locj, ini
+
+    """
+
+    def __init__(self, *args, **kw):
         super(PropretyUtil, self).__init__(*args, **kw)
 
     def load(self, resources_path: str) -> None:
@@ -47,21 +79,21 @@ class PropretyUtil(dict):
                     self.set_property(key=key, value=json.dumps(value))
 
     def get_string(self, key, default=None):
-        val = self.get(key,default)
+        val = self.get(key, default)
         return str(val) if val is not None else None
 
     def get_boolean(self, key, default=None):
-        val = self.get_string(key,default)
+        val = self.get_string(key, default)
         return to_boolean(val) if val is not None else None
 
     def get_int(self, key, default=0):
-        val = self.get(key,default)
+        val = self.get(key, default)
         return int(val) if val is not None else None
 
     def set_property(self, key, value):
         self.__setitem__(key, value)
         if key.startswith("encrypted."):
-            dkey = key.split(".",1)[1]
+            dkey = key.split(".", 1)[1]
             decrypt = self._decrypt_impl()
             d_val = decrypt(value)
             self.__setitem__(dkey, d_val)
