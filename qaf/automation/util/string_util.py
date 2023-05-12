@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 #  Copyright (c) 2022 Infostretch Corporation
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -649,3 +648,13 @@ def slugify(string, sign='-'):
 
 def to_boolean(string):
     return string.lower() in ("yes", "true", "t", "1", "y")
+
+
+def decode_base64(string: str) -> str:
+    import base64
+    return base64.b64decode(string).decode('utf-8')
+
+
+def encode_base64(string: str) -> str:
+    import base64
+    return base64.b64encode(string.encode('utf-8'))

@@ -4,7 +4,7 @@ import random
 import re
 import string
 
-from qaf.automation.util.string_util import to_boolean
+from qaf.automation.util.string_util import to_boolean, decode_base64
 
 
 class PropretyUtil(dict):
@@ -60,6 +60,11 @@ class PropretyUtil(dict):
 
     def set_property(self, key, value):
         self.__setitem__(key, value)
+        if key.startswith("encrypted."):
+            dkey = key.split(".",1)[1]
+            decrypt = self._decrypt_impl()
+            d_val = decrypt(value)
+            self.__setitem__(dkey, d_val)
 
     def get_property(self, key, default=None):
         return self.get(key, default)
@@ -154,3 +159,6 @@ class PropretyUtil(dict):
                     return eval(m_expr, self, vars)
                 except Exception as ex:
                     raise ne
+
+    def _decrypt_impl(self):
+        return self.get("password.decryptor.impl", decode_base64)
