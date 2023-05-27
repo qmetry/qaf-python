@@ -43,6 +43,7 @@ class ApplicationProperties:
     DRIVER_ADDITIONAL_CAPABILITIES = "driver.additional.capabilities"
     DRIVER_ADDITIONAL_CAPABILITIES_FORMAT = "{0}.additional.capabilities"
     DRIVER_CAPABILITY_PREFIX_FORMAT = "{0}.capabilities"
+    DRIVER_RESOURCES_FORMAT = "{0}.resources"
 
     SELENIUM_BASE_URL = "env.baseurl"
     RESOURCES = "env.resources"
@@ -51,6 +52,7 @@ class ApplicationProperties:
     WEBDRIVER_COMMAND_LISTENERS = "wd.command.listeners"
     WEBELEMENT_COMMAND_LISTENERS = "we.command.listeners"
     WEBSERVICE_COMMAND_LISTENERS = "ws.command.listeners"
+    RESULT_UPDATERS = "result.updator"
 
     ENV_DEFAULT_LANGUAGE = "env.default.locale"
     EXECUTABLE_PATH = 'executable.path'

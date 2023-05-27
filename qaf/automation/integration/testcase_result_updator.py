@@ -18,28 +18,26 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-from qaf.automation.formatter.py_test_report.meta_info import pytest_component
-from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
+from abc import ABC, abstractmethod
 
+from qaf.automation.integration.testcase_run_result import TestCaseRunResult
 
-class pystep(object):
+"""
+    Extend this class to add custom result updator.
+    Register custom updator class using `result.updator` property
+    @author: Chirag Jayswal
+    """
+class TestCaseResultUpdator(ABC):
+    @abstractmethod
+    def update_result(self, result:TestCaseRunResult) -> bool:
+        pass
 
-    def __init__(self, keyword="[Func]", name=None):
-        self.args = []
-        self.keyword = keyword
-        self.name = name
+    @abstractmethod
+    def get_tool_name(self) -> str:
+        pass
 
-    def before_step(self, step=None, *args):
-        self.args = [*args,]
-        pytest_component.PyTestStep._before_step(name=self.name, keyword=self.keyword, step=step,*args)
+    def before_shutdown(self):
+        pass
 
-    def after_step(self, status, exception=None):
-        pytest_component.PyTestStep._after_step(status=status, exception=exception)
-
-    def __call__(self, step):
-        def wrapped_step(*args):
-            self.before_step(step, *args)
-            step(*args)
-            self.after_step(status=PyTestStatus.passed.name)
-
-        return wrapped_step
+    def enabled(self) -> bool:
+        return True

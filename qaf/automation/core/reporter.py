@@ -18,15 +18,13 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-import uuid
-from qaf.automation.formatter.qaf_report.step.checkpoint import CheckPoint
-import os
-from qaf.automation.formatter.qaf_report.step.sub_check_points import SubCheckPoints
-from qaf.automation.ui.webdriver import qaf_test_base
-from qaf.automation.core.message_type import MessageType
 from typing import (
     Optional,
 )
+
+from qaf.automation.core.checkpoint_bean import CheckPointBean
+from qaf.automation.core.message_type import MessageType
+from qaf.automation.core.test_base import add_checkpoint, take_screenshot
 
 
 class Reporter:
@@ -34,12 +32,14 @@ class Reporter:
     This class will handle log event
     """
 
-    def add_check_point(self, message: str, message_type: MessageType, screen_shot: Optional[str] = '') -> None:
-        check_point = CheckPoint()
+    @staticmethod
+    def add_check_point(message: str, message_type: MessageType, screen_shot: Optional[str] = '') -> None:
+        check_point = CheckPointBean()
         check_point.message = message
         check_point.type = message_type
         check_point.screenshot = screen_shot
-        SubCheckPoints().add_check_point(check_point)
+        #SubCheckPoints().add_check_point(check_point)
+        add_checkpoint(check_point)
 
     @staticmethod
     def log(message: str, message_type: Optional[MessageType] = MessageType.Info) -> None:
@@ -53,7 +53,7 @@ class Reporter:
         Returns:
             None
         """
-        Reporter().add_check_point(message, message_type)
+        Reporter.add_check_point(message, message_type)
 
     @staticmethod
     def info(message: str) -> None:
@@ -66,7 +66,7 @@ class Reporter:
         Returns:
             None
         """
-        Reporter().add_check_point(message, MessageType.Info)
+        Reporter.add_check_point(message, MessageType.Info)
 
     @staticmethod
     def debug(message: str) -> None:
@@ -79,7 +79,7 @@ class Reporter:
         Returns:
             None
         """
-        Reporter().add_check_point(message, MessageType.Info)
+        Reporter.add_check_point(message, MessageType.Info)
 
     @staticmethod
     def error(message: str) -> None:
@@ -92,7 +92,7 @@ class Reporter:
         Returns:
             None
         """
-        Reporter().add_check_point(message, MessageType.Fail)
+        Reporter.add_check_point(message, MessageType.Fail)
 
     @staticmethod
     def critical(message: str) -> None:
@@ -105,7 +105,7 @@ class Reporter:
         Returns:
             None
         """
-        Reporter().add_check_point(message, MessageType.Warn)
+        Reporter.add_check_point(message, MessageType.Warn)
 
     @staticmethod
     def warn(message: str) -> None:
@@ -118,10 +118,10 @@ class Reporter:
         Returns:
             None
         """
-        Reporter().add_check_point(message, MessageType.Warn)
+        Reporter.add_check_point(message, MessageType.Warn)
 
     @staticmethod
     def log_with_screenshot(message: str, message_type: Optional[MessageType] = MessageType.Info) -> None:
-        filename = os.path.join(os.getenv('REPORT_DIR'), 'img', str(uuid.uuid4()) + '.png')
-        qaf_test_base.QAFTestBase().get_driver().save_screenshot(filename=filename)
-        Reporter().add_check_point(message, message_type, screen_shot=filename)
+        filename = take_screenshot() #os.path.join(os.getenv('REPORT_DIR'), 'img', str(uuid.uuid4()) + '.png')
+        #qaf_test_base.QAFTestBase().get_driver().save_screenshot(filename=filename)
+        Reporter.add_check_point(message, message_type, screen_shot=filename)

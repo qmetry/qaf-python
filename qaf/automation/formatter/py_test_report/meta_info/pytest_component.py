@@ -20,7 +20,6 @@
 
 import time
 
-from qaf.automation.formatter.py_test_report.pystep_decorators import pystep
 from qaf.automation.formatter.py_test_report.pytest_fixture import PyTestFixture
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus, del_all_attr
 
@@ -75,7 +74,7 @@ class PyTestFunction:
 
         PyTestFixture().before_function(PyTestFunction)
 
-        pystep(keyword='Given', name=request.node.name).before_step()
+        #pystep(keyword='Given', name=request.node.name).before_step()
 
     @staticmethod
     def _after_function(request):
@@ -86,7 +85,7 @@ class PyTestFunction:
         else:
             PyTestFunction.status = PyTestStatus.from_name(request.node.rep_call.outcome)
             PyTestFunction.exception = request.node.rep_call.longreprtext
-        pystep().after_step(status=PyTestFunction.status.name, exception=PyTestFunction.exception)
+        #pystep().after_step(status=PyTestFunction.status.name, exception=PyTestFunction.exception)
         PyTestFixture().after_function(PyTestFunction)
 
 
@@ -95,16 +94,18 @@ class PyTestStep:
     name = ''
     keyword = ''
     active = False
+    args = []
 
     @staticmethod
-    def _before_step(name, keyword, step):
-        PyTestStep._after_step(status=PyTestStatus.passed.name, exception=None)
+    def _before_step(name, keyword, step, *args):
+        #PyTestStep._after_step(status=PyTestStatus.passed.name, exception=None)
 
         PyTestStep.start_time = time.time()
         PyTestStep.name = step.__name__ if name is None else name
         PyTestStep.keyword = keyword
         PyTestStep.active = True
-        PyTestFixture().before_step(PyTestStep)
+        PyTestStep.args = [*args,]
+        PyTestFixture().before_step(PyTestStep,*args)
 
     @staticmethod
     def _after_step(status, exception=None):

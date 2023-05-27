@@ -44,7 +44,8 @@ class PropretyUtil(dict):
         super(PropretyUtil, self).__init__(*args, **kw)
 
     def load(self, resources_path: str) -> None:
-        all_resources_path = resources_path.split(";")
+
+        all_resources_path = resources_path.split(";") if resources_path else []
         for each_resource_path in all_resources_path:
             if os.path.isdir(each_resource_path):
                 for root, dirs, files in os.walk(each_resource_path):
@@ -108,6 +109,11 @@ class PropretyUtil(dict):
         value = self.get_raw_value(key)
         return self.resolve(value) if value is not None else default
 
+    def get_or_set(self, key, default):
+        if key not in self:
+            self.set_property(key, default)
+        return self.get(key)
+
     def get_raw_value(self, key, default=None):
         return self.__getitem__(key, default)
 
@@ -155,7 +161,7 @@ class PropretyUtil(dict):
         return ''.join(accum)
 
     def resolve(self, value, disc={}):
-        if isinstance(value, str):
+        if value and isinstance(value, str):
             pattern = re.compile(r"<%([^>]+)%>")
             value = self.interpolate(value, "<%", "%>", pattern, disc)
             pattern = re.compile(r"\$\{([^}]+)\}")

@@ -17,25 +17,24 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
+import time
 from typing import Optional
 
-from selenium.webdriver.support.expected_conditions import presence_of_element_located
-from selenium.webdriver.support.wait import WebDriverWait
-
-from qaf.automation.ui import js_toolkit
-from qaf.automation.ui.util.dynamic_wait import DynamicWait
-from qaf.automation.ui.util.locator_util import parse_locator
-from qaf.automation.ui.util.qaf_wd_expected_conditions import WaitForAjax, WaitForAnyPresent
+from appium.webdriver import Remote as AppiumDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
-from appium.webdriver import Remote as AppiumDriver
+from selenium.webdriver.support.expected_conditions import presence_of_element_located
+from selenium.webdriver.support.wait import WebDriverWait
 
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 from qaf.automation.core.load_class import load_class
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
+from qaf.automation.ui import js_toolkit
+from qaf.automation.ui.util.dynamic_wait import DynamicWait
+from qaf.automation.ui.util.locator_util import parse_locator
+from qaf.automation.ui.util.qaf_wd_expected_conditions import WaitForAjax, WaitForAnyPresent
+from qaf.automation.ui.webdriver import qaf_web_element as qafwebelement
 from qaf.automation.ui.webdriver.command_tracker import CommandTracker
-from qaf.automation.ui.webdriver import qaf_web_element as qafwebelement, qaf_test_base
 from qaf.automation.ui.webdriver.qaf_webdriver_listener import QAFWebDriverListener
 
 
@@ -127,13 +126,19 @@ class QAFWebDriver(RemoteWebDriver):
 
         try:
             if command_tracker.response is None:
+                command_tracker.start_time=round(time.time() * 1000)
                 response = super(QAFWebDriver, self).execute(command_tracker.command,
                                                              command_tracker.parameters)
                 command_tracker.response = response
-        except Exception as e:
-            self.on_exception(command_tracker)
-            command_tracker.exception = e
+                command_tracker.end_time = round(time.time() * 1000)
+                self.after_command(command_tracker)
 
+        except Exception as e:
+            self.after_command(command_tracker)
+            command_tracker.exception = e
+            self.on_exception(command_tracker)
+
+        command_tracker.end_time = round(time.time() * 1000)
         if command_tracker.has_exception():
             if command_tracker.retry:
                 response = super(QAFWebDriver, self).execute(command_tracker.command,
@@ -143,12 +148,11 @@ class QAFWebDriver(RemoteWebDriver):
             else:
                 raise command_tracker.exception
 
-        self.after_command(command_tracker)
         return command_tracker.response
 
     def load(self, element: qafwebelement.QAFWebElement):
         wait_time_out = CM().get_int_for_key(AP.SELENIUM_WAIT_TIMEOUT)
-        web_element = WebDriverWait(qaf_test_base.QAFTestBase().get_driver(), wait_time_out).until(
+        web_element = WebDriverWait(self, wait_time_out).until(
             presence_of_element_located((element.by, element.locator)))
         qafwebelement.QAFWebElement.create_instance_using_webelement(web_element)
         return web_element.id

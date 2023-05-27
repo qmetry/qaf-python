@@ -17,6 +17,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+import time
 
 import requests
 from requests import PreparedRequest
@@ -27,6 +28,7 @@ from qaf.automation.keys.application_properties import ApplicationProperties as 
 from qaf.automation.ui.webdriver.command_tracker import CommandTracker
 from qaf.automation.ws.rest.ws_listener import WsListener
 from qaf.automation.ws.ws_request_bean import WsRequestBean
+
 
 class WsRequest:
     response = None
@@ -43,20 +45,25 @@ class WsRequest:
         request_bean.resolve_parameters(params)
         command_tracker = CommandTracker(f'{request_bean.method} {request_bean.url}', request_bean.to_dict())
         s, prep, send_kwargs = self.prepare_request(request_bean)
-        # self.before_command(command_tracker)
-
+        self.before_command(command_tracker)
+        command_tracker.start_time = round(time.time() * 1000)
         try:
             WsRequest.response = s.send(prep, **send_kwargs)
             request = WsRequest.response.request.prepare() if isinstance(WsRequest.response.request, requests.Request) else WsRequest.response.request
             headers = '\r\n'.join(f'{k}: {v}' for k, v in request.headers.items())
             body = '' if request.body is None else request.body.decode() if isinstance(request.body,
                                                                                        bytes) else request.body
-            command_tracker = CommandTracker(f'{request.method} {request.url}{request.path_url}', {"headers":headers,"body":body })
+            #command_tracker = CommandTracker(f'{request.method} {request.url}{request.path_url}', {"headers":headers,"body":body })
+            command_tracker.command=f'{request.method} {request.url}{request.path_url}'
+            command_tracker.parameters= {"headers":headers,"body":body }
             command_tracker.response = WsRequest.response
+            command_tracker.end_time = round(time.time() * 1000)
+            self.after_command(command_tracker)
 
         except Exception as e:
-            self.on_exception(command_tracker)
+            command_tracker.end_time = round(time.time() * 1000)
             command_tracker.exception = e
+            self.on_exception(command_tracker)
 
         if command_tracker.has_exception():
             if command_tracker.retry:
@@ -65,7 +72,6 @@ class WsRequest:
                 command_tracker.exception = None
             else:
                 raise command_tracker.exception
-        self.after_command(command_tracker)
         return command_tracker.response
 
     def prepare_request(self, request_bean: WsRequestBean) -> (requests.Session, PreparedRequest, dict):

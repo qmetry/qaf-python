@@ -21,10 +21,11 @@
 import logging
 import sys
 
-from qaf.automation.ui.webdriver.command_tracker import CommandTracker
-
-from qaf.automation.formatter.qaf_report.scenario.command_log import CommandLog, CommandLogStack
+from qaf.automation.core.command_log_bean import CommandLogBean
+from qaf.automation.core.test_base import add_command
+# from qaf.automation.formatter.qaf_report.scenario.command_log import CommandLog, CommandLogStack
 from qaf.automation.ui.webdriver.abstract_listener import DriverListener
+from qaf.automation.ui.webdriver.command_tracker import CommandTracker
 
 
 class WsListener(DriverListener):
@@ -34,21 +35,28 @@ class WsListener(DriverListener):
     __logger.addHandler(__streaming_handler)
 
     def before_command(self, driver, command_tracker: CommandTracker) -> None:
-        commandlog = CommandLog()
-        commandlog.commandName = command_tracker.command
-        commandlog.result = command_tracker.message
-        commandlog.args = command_tracker.parameters
-        CommandLogStack().add_command_log(commandlog)
-        self.__logger.info(commandlog.to_string())
+        self.__logger.info('Executing ' + command_tracker.command +
+                           ' Parameters: ' + str(command_tracker.parameters))
 
     def after_command(self, driver, command_tracker: CommandTracker) -> None:
-        commandlog = CommandLog()
+        commandlog = CommandLogBean()
         commandlog.commandName = command_tracker.command
         commandlog.result = command_tracker.response.text if command_tracker.response is not None else command_tracker.response['status_code']
-        commandlog.args = command_tracker.parameters
-        CommandLogStack().add_command_log(commandlog)
+        commandlog.args = [command_tracker.parameters]
+        commandlog.duration = command_tracker.end_time - command_tracker.start_time
+
+        #CommandLogStack().add_command_log(commandlog)
+        add_command(commandlog)
         self.__logger.info(commandlog.to_string())
 
     def on_exception(self, driver, command_tracker: CommandTracker) -> None:
-        self.__logger.info('Executing ' + command_tracker.command +
+        self.__logger.info('exception ' + command_tracker.command +
                            ' Parameters: ' + str(command_tracker.parameters))
+        commandlog = CommandLogBean()
+        commandlog.commandName = command_tracker.command
+        commandlog.result = command_tracker.message
+        commandlog.args = [command_tracker.parameters]
+        commandlog.duration = command_tracker.end_time - command_tracker.start_time
+        # CommandLogStack().add_command_log(commandlog)
+        add_command(commandlog)
+        self.__logger.info(commandlog.to_string())

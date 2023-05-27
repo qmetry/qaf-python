@@ -21,7 +21,6 @@
 
 # @Author: Chirag Jayswal
 import time
-
 from typing import TypeVar, Generic
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -76,7 +75,7 @@ class DynamicWait(Generic[T]):
         while True:
             try:
                 value = method(self._inject)
-                if value:
+                if value is not None:
                     if type(value) is bool:
                         return value
                     elif value[0]:
@@ -99,7 +98,7 @@ class DynamicWait(Generic[T]):
         while True:
             try:
                 value = method(self._inject)
-                if value:
+                if value is not None:
                     if type(value) is bool:
                         if not value:
                             return not value

@@ -17,12 +17,11 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
-from qaf.automation.ui.webdriver.qaf_test_base import QAFTestBase
+from qaf.automation.core.test_base import get_driver
 from qaf.automation.ui.webdriver.qaf_web_driver import QAFWebDriver
 
 
 class BaseTestPage:
     @property
     def driver(self) -> QAFWebDriver:
-        return QAFTestBase().get_driver()
+        return get_driver()

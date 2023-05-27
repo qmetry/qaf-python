@@ -35,8 +35,8 @@ class CommandTracker:
         self.exception = None
         self.stage = -1
         self.retry = False
-        self.start_time = None
-        self.end_time = None
+        self.start_time = 0
+        self.end_time = 0
         self.response = None
         self.command = command
         self.__parameters = {}

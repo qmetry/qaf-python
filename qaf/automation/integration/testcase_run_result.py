@@ -17,29 +17,26 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+class TestCaseRunResult:
+    """
+    @author: Chirag Jayswal
+    """
 
-from qaf.automation.formatter.py_test_report.meta_info import pytest_component
-from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
+    def __init__(self):
+        self.checkPoints = []
+        self.commandLogs = []
+        self.status = ""
+        self.metaData = {}
+        self.testData = []
+        self.steps=[]
+        self.starttime=0
+        self.endtime=0
+        self.isTest=True
+        self.executionInfo={}
+        self.className=""
+        self.willRetry=False
+        self.throwable=None
 
+    def get_name(self):
+        return self.metaData.get("name")
 
-class pystep(object):
-
-    def __init__(self, keyword="[Func]", name=None):
-        self.args = []
-        self.keyword = keyword
-        self.name = name
-
-    def before_step(self, step=None, *args):
-        self.args = [*args,]
-        pytest_component.PyTestStep._before_step(name=self.name, keyword=self.keyword, step=step,*args)
-
-    def after_step(self, status, exception=None):
-        pytest_component.PyTestStep._after_step(status=status, exception=exception)
-
-    def __call__(self, step):
-        def wrapped_step(*args):
-            self.before_step(step, *args)
-            step(*args)
-            self.after_step(status=PyTestStatus.passed.name)
-
-        return wrapped_step

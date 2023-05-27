@@ -18,13 +18,14 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+import logging
 import sys
 
-from qaf.automation.ui.webdriver.command_tracker import CommandTracker
-
-from qaf.automation.formatter.qaf_report.scenario.command_log import CommandLog, CommandLogStack
+from qaf.automation.core.command_log_bean import CommandLogBean
+from qaf.automation.core.test_base import add_command
+# from qaf.automation.formatter.qaf_report.scenario.command_log import CommandLog, CommandLogStack
 from qaf.automation.ui.webdriver.abstract_listener import DriverListener
-import logging
+from qaf.automation.ui.webdriver.command_tracker import CommandTracker
 
 
 class QAFWebDriverListener(DriverListener):
@@ -34,22 +35,26 @@ class QAFWebDriverListener(DriverListener):
     __logger.addHandler(__streaming_handler)
 
     def on_exception(self, driver, command_tracker: CommandTracker):
-        selenium_log = CommandLog()
+        selenium_log = CommandLogBean()
         selenium_log.commandName = command_tracker.command
         selenium_log.result = command_tracker.message
-        selenium_log.args = command_tracker.parameters
-        CommandLogStack().add_command_log(selenium_log)
+        selenium_log.args = [command_tracker.parameters]
+        selenium_log.duration = command_tracker.end_time - command_tracker.start_time
+        # CommandLogStack().add_command_log(selenium_log)
+        add_command(selenium_log)
         self.__logger.info(selenium_log.to_string())
 
     def after_command(self, driver, command_tracker: CommandTracker):
         if not is_command_excluded_from_logging(command_tracker.command):
-            selenium_log = CommandLog()
+            selenium_log = CommandLogBean()
             selenium_log.commandName = command_tracker.command
             selenium_log.result = 'OK' if (
-                        command_tracker.response is None or 'value' not in command_tracker.response) else \
-            str(command_tracker.response['value'])
-            selenium_log.args = command_tracker.parameters
-            CommandLogStack().add_command_log(selenium_log)
+                    command_tracker.response is None or 'value' not in command_tracker.response) else \
+                str(command_tracker.response['value'])
+            selenium_log.args = [command_tracker.parameters]
+            selenium_log.duration = command_tracker.end_time - command_tracker.start_time
+            # CommandLogStack().add_command_log(selenium_log)
+            add_command(selenium_log)
             self.__logger.info(selenium_log.to_string())
 
     def before_command(self, driver, command_tracker: CommandTracker):

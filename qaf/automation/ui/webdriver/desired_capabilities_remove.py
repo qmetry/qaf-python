@@ -20,10 +20,10 @@
 
 from urllib import parse
 
-from qaf.automation.core.load_class import load_class
 from selenium.webdriver import DesiredCapabilities
 
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
+from qaf.automation.core.load_class import load_class
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
 
 

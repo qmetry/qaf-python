@@ -17,29 +17,43 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
-from qaf.automation.formatter.py_test_report.meta_info import pytest_component
-from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
-
-
-class pystep(object):
-
-    def __init__(self, keyword="[Func]", name=None):
-        self.args = []
-        self.keyword = keyword
+class StatusCounter(object):
+    """
+    @author: Chirag Jayswal
+    """
+    def __init__(self, name):
+        self.file = name
+        self._pass = 0
+        self._fail = 0
+        self._skip = 0
         self.name = name
 
-    def before_step(self, step=None, *args):
-        self.args = [*args,]
-        pytest_component.PyTestStep._before_step(name=self.name, keyword=self.keyword, step=step,*args)
+    def with_file(self, file_name):
+        self.file = file_name
+        return self
 
-    def after_step(self, status, exception=None):
-        pytest_component.PyTestStep._after_step(status=status, exception=exception)
+    def add(self, status):
+        if "pass" in status.lower():
+            self._pass += 1
+        elif "fail" in status.lower():
+            self._fail += 1
+        else:
+            self._skip += 1
 
-    def __call__(self, step):
-        def wrapped_step(*args):
-            self.before_step(step, *args)
-            step(*args)
-            self.after_step(status=PyTestStatus.passed.name)
+    def get_pass(self):
+        return self._pass
 
-        return wrapped_step
+    def get_fail(self):
+        return self._fail
+
+    def get_skip(self):
+        return self._skip
+
+    def get_total(self):
+        return self._pass + self._fail + self._skip
+
+    def get_status(self):
+        return "pass" if self.get_total() == self._pass else "fail"
+
+    def get_pass_rate(self):
+        return self._pass * 100 / (self._pass + self._fail + self._skip) if self._pass > 0 else 0

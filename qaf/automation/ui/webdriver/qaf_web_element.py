@@ -17,7 +17,8 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
+import time
+from typing import Any
 from typing import Optional
 
 from hamcrest import contains_string
@@ -27,19 +28,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.command import Command
 from selenium.webdriver.remote.webelement import WebElement as RemoteWebElement
 
+from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
+from qaf.automation.core.load_class import load_class
 from qaf.automation.core.message_type import MessageType
+from qaf.automation.core.reporter import Reporter
+from qaf.automation.keys.application_properties import ApplicationProperties as AP
 from qaf.automation.ui.util.dynamic_wait import DynamicWait
 from qaf.automation.ui.util.locator_util import parse_locator
 from qaf.automation.ui.util.qaf_element_expected_conditions import ElementToBeVisible, ElementToBeEnabled, \
     PresenceOfElement, ElementHasText, ElementTextMatches, ElementHasValue, \
     ElementValueMatches, ElementToBeSelected, ElementHasAttribute, ElementAttributeMatches, \
     ElementHasCssClass, ElementHasCssStyle, ElementCssClassMatches, ElementCssStyleMatches
-from qaf.automation.ui.webdriver import qaf_test_base
-from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
-from qaf.automation.core.load_class import load_class
-from qaf.automation.core.reporter import Reporter
-from qaf.automation.keys.application_properties import ApplicationProperties as AP
-from typing import Any
 from qaf.automation.ui.webdriver.command_tracker import Stage, CommandTracker
 
 
@@ -55,7 +54,8 @@ class QAFWebElement(RemoteWebElement):
         self.metadata = {}
 
         if len(locator) > 0:
-            parent = qaf_test_base.QAFTestBase().get_driver()
+            from qaf.automation.core.test_base import get_driver
+            parent = get_driver()
             value = CM().get_str_for_key(locator, default_value=locator)
             self.by, self.locator, self.description, self.metadata = parse_locator(value)
             self.cacheable = self.cacheable or self.metadata.get("cacheable", False)
@@ -629,13 +629,15 @@ class QAFWebElement(RemoteWebElement):
         self.before_command(command_tracker)
         try:
             if command_tracker.response is None:
+                command_tracker.start_time = round(time.time() * 1000)
                 response = self.parent.execute(command_tracker.command,
                                                command_tracker.parameters)
                 command_tracker.response = response
-
+                command_tracker.end_time = round(time.time() * 1000)
             self.after_command(command_tracker)
         except Exception as e:
             command_tracker.exception = e
+            command_tracker.end_time = round(time.time() * 1000)
             self.on_exception(command_tracker)
 
         if command_tracker.has_exception():

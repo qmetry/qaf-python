@@ -19,13 +19,14 @@
 #  SOFTWARE.
 
 import json
-
-from qaf.automation.core.singleton import Singleton
-from qaf.automation.util.property_util import PropretyUtil
-from qaf.automation.util.string_util import to_boolean
+import os
 from typing import (
     Optional,
 )
+
+from qaf.automation.core.singleton import Singleton
+from qaf.automation.keys.application_properties import ApplicationProperties as AP
+from qaf.automation.util.property_util import PropretyUtil
 
 
 class ConfigurationsManager(metaclass=Singleton):
@@ -35,6 +36,10 @@ class ConfigurationsManager(metaclass=Singleton):
 
     def __init__(self):
         self.__dict = PropretyUtil()
+        application_properties_path = os.path.join('resources', 'application.properties')
+        if os.path.exists(application_properties_path):
+            self.__dict.load(application_properties_path)
+        self.__dict.load(self.__dict.get_string(AP.RESOURCES))
 
     def contains_key(self, key: str) -> bool:
         """
