@@ -73,13 +73,14 @@ def __start_webdriver(driver_name, is_remote_driver=False) -> None:
             __under_laying_driver = load_class(class_name)(command_executor=get_server_url(),
                                                            desired_capabilities=desired_capabilities)
         else:
-            __web_driver_manager(driver_name=driver_name)
+            service = __web_driver_manager(driver_name=driver_name)
 
             # Selenium Local Driver
             driver_options = get_driver_options(driver_name=driver_name)
+            driver_options.capabilities.update(desired_capabilities)
+
             class_name = 'selenium.webdriver.{driver_name}.webdriver.WebDriver'.format(driver_name=driver_name)
-            __under_laying_driver = load_class(class_name)(options=driver_options,
-                                                           desired_capabilities=desired_capabilities)
+            __under_laying_driver = load_class(class_name)(service=service, options=driver_options)
     CM.get_bundle().set_property("driverCapabilities",__under_laying_driver.capabilities)
     return qafwebdriver.QAFWebDriver(__under_laying_driver)
 
@@ -145,7 +146,7 @@ def get_server_url() -> str:
     )
 
 
-def __web_driver_manager(driver_name) -> None:
+def __web_driver_manager(driver_name) :
     driver_name = driver_name.replace('driver', '').replace('remote', '').lower()
     driver_name_caps = str(driver_name.replace('firefox', 'gecko')).capitalize()
     class_name = 'webdriver_manager.{driver_name}.{driver_name_caps}DriverManager'.format(driver_name=driver_name,
@@ -153,3 +154,5 @@ def __web_driver_manager(driver_name) -> None:
     driver_path = load_class(class_name)().install()
     driver_path = driver_path.rsplit('/', 1)[0]
     os.environ["PATH"] += os.pathsep + driver_path
+    #load_class(class_name)
+    return load_class ('selenium.webdriver.{driver_name}.service.Service'.format(driver_name=driver_name))( driver_path)

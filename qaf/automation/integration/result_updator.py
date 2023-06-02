@@ -45,6 +45,7 @@ result_updaters = register_updaters()
 
 def update_result(result):
     # TODO: use executor https://docs.python.org/3/library/concurrent.futures.html
+    # from multiprocessing import parent_process
     if result_updaters is not None:
         for result_updater in result_updaters:
             try:

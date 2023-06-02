@@ -17,6 +17,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+import atexit
 import os
 import re
 import time
@@ -35,6 +36,7 @@ from qaf.automation.ui.webdriver.driver_factory import create_driver
     @author: Chirag Jayswal
 """
 get_bundle = ConfigurationsManager.get_bundle
+prepareForShutdown = False
 
 QAF_COMMAND_LOG_KEY = "commandLog"
 QAF_CHECKPOINTS_KEY = "checkPointResults"
@@ -43,12 +45,12 @@ QAF_DRIVER_CONTEXT_KEY = "__driver_ctx"
 
 QAF_VERIFICATION_ERRORS_KEY = "verificationErrors"
 OUTPUT_TEST_RESULTS_DIR = get_bundle().get_or_set('test.results.dir',
-                                                      os.environ.get('test.results.dir', "test-results"))
+                                                  os.environ.get('test.results.dir', "test-results"))
 REPORT_DIR = get_bundle().get_or_set('json.report.root.dir',
-                                         os.environ.get('json.report.root.dir',
-                                                        os.path.join(OUTPUT_TEST_RESULTS_DIR,
-                                                                     strftime('%d-%m-%Y_%H_%M_%S',
-                                                                              time.localtime()))))
+                                     os.environ.get('json.report.root.dir',
+                                                    os.path.join(OUTPUT_TEST_RESULTS_DIR,
+                                                                 strftime('%d-%m-%Y_%H_%M_%S',
+                                                                          time.localtime()))))
 
 
 def has_driver(name=None):
@@ -59,7 +61,7 @@ def has_driver(name=None):
 def get_driver(name=None):
     driver_name = name or get_bundle().get_string(qafKeys.DRIVER_NAME, "firefoxDriver")
     driver_ctx = _get_driver_ctx()
-    if driver_name not in driver_ctx:
+    if driver_name not in driver_ctx and not prepareForShutdown:
         driver_ctx[driver_name] = create_driver(driver_name.lower())
     if driver_name.lower() != get_bundle().get_string(qafKeys.DRIVER_NAME, "").lower():
         get_bundle().set_property(qafKeys.DRIVER_NAME, driver_name)
@@ -137,7 +139,7 @@ def is_verification_failed() -> bool:
 
 def start_step(step_name, args=[]):
     current_step = _get_cur_step()
-    step = _StepLogger(step_name,current_step, args)
+    step = _StepLogger(step_name, current_step, args)
 
 
 def end_step(status: bool):
@@ -148,7 +150,7 @@ def end_step(status: bool):
         last_captured_screenshot = context().pop("last_captured_screenshot")
         current_step.checkpoint.screenshot = last_captured_screenshot
     _set_cur_step(current_step.get_parent())
-    #del current_step
+    # del current_step
 
 
 def add_command(log: CommandLogBean) -> None:
@@ -186,6 +188,17 @@ def take_screenshot() -> str:
         except Exception:
             return filename
     return ""
+
+
+def shut_down():
+    global prepareForShutdown
+    prepareForShutdown = True
+    print("Preparing For Shut Down...")
+    tear_down()
+    #ResultUpdator.awaitTermination()
+
+
+atexit.register(shut_down)
 
 
 class _StepLogger(object):

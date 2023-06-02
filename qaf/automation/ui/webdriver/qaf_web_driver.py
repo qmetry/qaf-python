@@ -66,8 +66,12 @@ class QAFWebDriver(RemoteWebDriver):
 
     def start_session(self, capabilities: dict, browser_profile=None) -> None:
         self.command_executor = self.__under_laying_driver.command_executor
-        self.capabilities = self.__under_laying_driver.capabilities
-        self.w3c = self.command_executor.w3c
+        try:
+            self.capabilities = self.__under_laying_driver.capabilities
+            self.w3c = self.command_executor.w3c
+        except:
+            self.caps = self.__under_laying_driver.capabilities
+            self.w3c = True
         self.session_id = self.__under_laying_driver.session_id
 
     def find_element(self, by: Optional[str] = By.ID, value: Optional[str] = None,

@@ -35,7 +35,7 @@ class Reporter:
     @staticmethod
     def add_check_point(message: str, message_type: MessageType, screen_shot: Optional[str] = '') -> None:
         check_point = CheckPointBean()
-        check_point.message = message
+        check_point.message = str(message)
         check_point.type = message_type
         check_point.screenshot = screen_shot
         #SubCheckPoints().add_check_point(check_point)

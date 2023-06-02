@@ -47,11 +47,11 @@ class BaseEnvironment:
         # root_directory = os.path.join(OUTPUT_TEST_RESULTS_DIR, date_time())
         # create_directory(root_directory)
         # os.environ['REPORT_DIR'] = root_directory
-        #before_all()
+        # before_all()
         pass
 
     def after_all(self, context):
-        #ExecutionMetaInfo().endTime = current_timestamp()
+        # ExecutionMetaInfo().endTime = current_timestamp()
         tear_down()
 
     def before_feature(self, context, feature):
@@ -65,13 +65,13 @@ class BaseEnvironment:
         # create_directory(current_feature_directory)
         # os.environ['CURRENT_FEATURE_DIR'] = current_feature_directory
 
-        #ExecutionMetaInfo().add_test(re.sub('[^A-Za-z0-9]+', ' - ', re.sub('.feature', '', feature.filename)))
+        # ExecutionMetaInfo().add_test(re.sub('[^A-Za-z0-9]+', ' - ', re.sub('.feature', '', feature.filename)))
 
-        #FeatureOverView().startTime = current_timestamp()
-        #FeatureOverView().add_class(feature.name)
+        # FeatureOverView().startTime = current_timestamp()
+        # FeatureOverView().add_class(feature.name)
 
     def after_feature(self, context, feature):
-        #FeatureOverView().endTime = current_timestamp()
+        # FeatureOverView().endTime = current_timestamp()
         pass
 
     def before_scenario(self, context, scenario):
@@ -80,8 +80,8 @@ class BaseEnvironment:
         # create_directory(current_scenario_directory)
         # os.environ['CURRENT_SCENARIO_DIR'] = current_scenario_directory
 
-        #self.obj_scenario_meta_info = ScenarioMetaInfo()
-        #self.obj_scenario_meta_info.startTime = current_timestamp()
+        # self.obj_scenario_meta_info = ScenarioMetaInfo()
+        # self.obj_scenario_meta_info.startTime = current_timestamp()
         self.startTime = current_timestamp()
         clear_assertions_log()
 
@@ -93,16 +93,16 @@ class BaseEnvironment:
         testcase_run_result.className = scenario.feature.name
         testcase_run_result.commandLogs = get_command_logs()
         testcase_run_result.starttime = self.startTime
-        testcase_run_result.endtime = current_timestamp()#self.startTime + (scenario.duration * 1000)
+        testcase_run_result.endtime = current_timestamp()  # self.startTime + (scenario.duration * 1000)
         testcase_run_result.metaData = {
             "name": scenario.name,
             "resultFileName": scenario.name,
             "referece": six.text_type(scenario.location),
             "groups": scenario.effective_tags
         }
-        testcase_run_result.executionInfo={
-            "testName":"Py Test",
-            "suiteName":"Py Suite",
+        testcase_run_result.executionInfo = {
+            "testName": "Py Test",
+            "suiteName": "Py Suite",
             "driverCapabilities": {}
         }
         if scenario.description:
@@ -115,14 +115,7 @@ class BaseEnvironment:
                     error_message = step.error_message
                     error_message = error_message.splitlines()
                     testcase_run_result.throwable = error_message
-
-                    #Scenario(file_name=scenario.name).errorTrace = error_message
                 elif step.status == Status.skipped or step.status == Status.untested:
-                    # obj_step = Step()
-                    # obj_step.start_behave_step(step)
-                    # obj_step.stop_behave_step(step)
-                    # Scenario(file_name=self.current_scenario.name).add_checkPoints(obj_step.obj_check_point)
-                    # del obj_step
                     start_step(step.keyword + ' ' + step.name)
                     end_step(None)
         else:
@@ -138,7 +131,6 @@ class BaseEnvironment:
         testcase_run_result.status = status_name
 
         update_result(testcase_run_result)
-
 
         # ExecutionMetaInfo().update_status(status_name)
         # FeatureOverView().update_status(status_name)
@@ -164,8 +156,7 @@ class BaseEnvironment:
     def before_step(self, context, step):
         self.current_step = step
         start_step(step.keyword + ' ' + step.name)
-        #start_step("base environment")
-
+        # start_step("base environment")
 
     def after_step(self, context, step):
         status = step_status(step)

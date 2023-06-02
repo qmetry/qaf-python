@@ -42,7 +42,7 @@ class WsListener(DriverListener):
         commandlog = CommandLogBean()
         commandlog.commandName = command_tracker.command
         commandlog.result = command_tracker.response.text if command_tracker.response is not None else command_tracker.response['status_code']
-        commandlog.args = [command_tracker.parameters]
+        commandlog.args = [str(command_tracker.parameters)]
         commandlog.duration = command_tracker.end_time - command_tracker.start_time
 
         #CommandLogStack().add_command_log(commandlog)
@@ -55,7 +55,7 @@ class WsListener(DriverListener):
         commandlog = CommandLogBean()
         commandlog.commandName = command_tracker.command
         commandlog.result = command_tracker.message
-        commandlog.args = [command_tracker.parameters]
+        commandlog.args = [str(command_tracker.parameters)]
         commandlog.duration = command_tracker.end_time - command_tracker.start_time
         # CommandLogStack().add_command_log(commandlog)
         add_command(commandlog)

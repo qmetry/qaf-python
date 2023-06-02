@@ -39,7 +39,7 @@ setup(name='qaf-python',
       long_description=readme,
       long_description_content_type="text/markdown",
       maintainer_email='nishith.shah@infostretch.com',
-
+      entry_points={"pytest11": ["qaf = qaf.qaf_pytest_plugin"]},
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
@@ -58,12 +58,12 @@ setup(name='qaf-python',
           'qaf.automation': ['config/*.ini']
       },
       install_requires=[
-          'selenium==3.14.1',
-          'Appium-Python-Client==0.48',
+          'selenium==4.9.1',
+          'Appium-Python-Client',
           'behave==1.2.6',
           'PyHamcrest==1.9.0',
-          'requests==2.20.0',
+          'requests==2.31.0',
           'jmespath==1.0.0',
-          'webdriver-manager==3.5.4'
+          'webdriver-manager==3.8.6'
       ],
       zip_safe=False)

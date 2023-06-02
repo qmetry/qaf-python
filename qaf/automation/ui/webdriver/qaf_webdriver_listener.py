@@ -38,7 +38,7 @@ class QAFWebDriverListener(DriverListener):
         selenium_log = CommandLogBean()
         selenium_log.commandName = command_tracker.command
         selenium_log.result = command_tracker.message
-        selenium_log.args = [command_tracker.parameters]
+        selenium_log.args = [str(command_tracker.parameters)]
         selenium_log.duration = command_tracker.end_time - command_tracker.start_time
         # CommandLogStack().add_command_log(selenium_log)
         add_command(selenium_log)
@@ -51,7 +51,7 @@ class QAFWebDriverListener(DriverListener):
             selenium_log.result = 'OK' if (
                     command_tracker.response is None or 'value' not in command_tracker.response) else \
                 str(command_tracker.response['value'])
-            selenium_log.args = [command_tracker.parameters]
+            selenium_log.args = [str(command_tracker.parameters)]
             selenium_log.duration = command_tracker.end_time - command_tracker.start_time
             # CommandLogStack().add_command_log(selenium_log)
             add_command(selenium_log)

@@ -24,10 +24,8 @@ from qaf.automation.core.configurations_manager import ConfigurationsManager as 
 from qaf.automation.core.qaf_exceptions import KeyNotFoundError
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
 
-if not CM().contains_key(key=AP.TESTING_APPROACH):
-    raise KeyNotFoundError(message=AP.TESTING_APPROACH + ' e.g. behave, pytest')
 
-if CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'behave':
+if CM.get_bundle().get_string(key=AP.TESTING_APPROACH,default="behave").lower() == 'behave':
     from behave.runner_util import load_step_modules
     import os
 
