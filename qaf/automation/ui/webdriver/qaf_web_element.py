@@ -60,7 +60,7 @@ class QAFWebElement(RemoteWebElement):
             self.by, self.locator, self.description, self.metadata = parse_locator(value)
             self.cacheable = self.cacheable or self.metadata.get("cacheable", False)
             self._id = -1
-            RemoteWebElement.__init__(self, parent=parent, id_=self._id, w3c=parent.w3c)
+            RemoteWebElement.__init__(self, parent=parent, id_=self._id)
 
         if CM().contains_key(AP.WEBELEMENT_COMMAND_LISTENERS):
             class_name = CM().get_str_for_key(AP.WEBELEMENT_COMMAND_LISTENERS)

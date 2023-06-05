@@ -24,6 +24,7 @@ from urllib import parse
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 from qaf.automation.core.load_class import load_class
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
+from qaf.automation.ui.webdriver.options import GenericOptions
 
 """
 @author: Chirag Jayswal
@@ -45,10 +46,12 @@ def __start_appium_webdriver(driver_name) -> None:
 
     driver_name = re.sub(r'(?i)remote|driver', '', driver_name)
     desired_capabilities = get_desired_capabilities(driver_name=driver_name)
-    CM.get_bundle().set_property("driver.desiredCapabilities",desired_capabilities)
+    CM.get_bundle().set_property("driver.desiredCapabilities", desired_capabilities)
+    options = GenericOptions()
+    options.load_capabilities(desired_capabilities)
     __under_laying_driver = webdriver.Remote(command_executor=get_server_url(),
-                                             desired_capabilities=desired_capabilities)
-    CM.get_bundle().set_property("driverCapabilities",__under_laying_driver.capabilities)
+                                             options=options)
+    CM.get_bundle().set_property("driverCapabilities", __under_laying_driver.capabilities)
     return qafwebdriver.QAFWebDriver(__under_laying_driver)
 
 
@@ -57,31 +60,30 @@ def __start_webdriver(driver_name, is_remote_driver=False) -> None:
 
     driver_name = re.sub(r'(?i)remote|driver', '', driver_name)
     desired_capabilities = get_desired_capabilities(driver_name=driver_name)
-    CM.get_bundle().set_property("driver.desiredCapabilities",desired_capabilities)
+    CM.get_bundle().set_property("driver.desiredCapabilities", desired_capabilities)
+
+    driver_options = get_driver_options(driver_name=driver_name)
+    options = GenericOptions(driver_options)
+    options.load_capabilities(desired_capabilities)
 
     if is_remote_driver:
         # Selenium Remote Driver
-        driver_options = get_driver_options(driver_name=driver_name)
         class_name = 'selenium.webdriver.remote.webdriver.WebDriver'
         __under_laying_driver = load_class(class_name)(command_executor=get_server_url(),
-                                                       options=driver_options,
-                                                       desired_capabilities=desired_capabilities)
+                                                       options=options)
     else:
         if CM().contains_key(AP.DRIVER_CLASS):
             # Appium Driver
             class_name = str(CM().get_str_for_key(AP.DRIVER_CLASS))
             __under_laying_driver = load_class(class_name)(command_executor=get_server_url(),
-                                                           desired_capabilities=desired_capabilities)
+                                                           options=options)
         else:
             service = __web_driver_manager(driver_name=driver_name)
 
             # Selenium Local Driver
-            driver_options = get_driver_options(driver_name=driver_name)
-            driver_options.capabilities.update(desired_capabilities)
-
             class_name = 'selenium.webdriver.{driver_name}.webdriver.WebDriver'.format(driver_name=driver_name)
-            __under_laying_driver = load_class(class_name)(service=service, options=driver_options)
-    CM.get_bundle().set_property("driverCapabilities",__under_laying_driver.capabilities)
+            __under_laying_driver = load_class(class_name)(service=service, options=options)
+    CM.get_bundle().set_property("driverCapabilities", __under_laying_driver.capabilities)
     return qafwebdriver.QAFWebDriver(__under_laying_driver)
 
 
@@ -118,10 +120,13 @@ def get_desired_capabilities(driver_name: str) -> dict:
 
 
 def get_driver_options(driver_name: str):
-    class_name = 'selenium.webdriver.{driver_name}.options.Options'. \
-        format(driver_name=driver_name)
-    options = load_class(class_name)()
-    return options
+    try:
+        class_name = 'selenium.webdriver.{driver_name}.options.Options'. \
+            format(driver_name=driver_name)
+        options = load_class(class_name)()
+        return options
+    except Exception as e:
+        return GenericOptions()
 
 
 def get_server_url() -> str:
@@ -146,7 +151,7 @@ def get_server_url() -> str:
     )
 
 
-def __web_driver_manager(driver_name) :
+def __web_driver_manager(driver_name):
     driver_name = driver_name.replace('driver', '').replace('remote', '').lower()
     driver_name_caps = str(driver_name.replace('firefox', 'gecko')).capitalize()
     class_name = 'webdriver_manager.{driver_name}.{driver_name_caps}DriverManager'.format(driver_name=driver_name,
@@ -154,5 +159,6 @@ def __web_driver_manager(driver_name) :
     driver_path = load_class(class_name)().install()
     driver_path = driver_path.rsplit('/', 1)[0]
     os.environ["PATH"] += os.pathsep + driver_path
-    #load_class(class_name)
-    return load_class ('selenium.webdriver.{driver_name}.service.Service'.format(driver_name=driver_name))( driver_path)
+    # load_class(class_name)
+    return load_class('selenium.webdriver.{driver_name}.service.Service'.format(driver_name=driver_name))(driver_path)
+
