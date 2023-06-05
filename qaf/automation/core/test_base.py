@@ -137,15 +137,15 @@ def is_verification_failed() -> bool:
     return get_verification_errors() > 0
 
 
-def start_step(step_name, args=[]):
+def start_step(step_name, display_name, args=[]):
     current_step = _get_cur_step()
-    step = _StepLogger(step_name, current_step, args)
+    step = _StepLogger(step_name, display_name, current_step, args)
 
 
-def end_step(status: bool):
+def end_step(status: bool, result=None):
     current_step = _get_cur_step()
     success = current_step.checkpoint.is_success()
-    current_step.set_status(False if not success else status)
+    current_step.set_status(False if not success else status, result)
     if "last_captured_screenshot" in context():
         last_captured_screenshot = context().pop("last_captured_screenshot")
         current_step.checkpoint.screenshot = last_captured_screenshot
@@ -170,7 +170,7 @@ def _get_cur_step():
     if "_current_step" in context():
         return context()["_current_step"]
     else:
-        return _StepLogger("", None)
+        return _StepLogger("","", None)
 
 
 def _set_cur_step(step):
@@ -203,7 +203,7 @@ atexit.register(shut_down)
 
 class _StepLogger(object):
 
-    def __init__(self, name, parent, args={}):
+    def __init__(self, name, dispay_name, parent, args=[]):
         self.st_time = round(time.time() * 1000)
         checkpoint = CheckPointBean()
         command_log = CommandLogBean()
@@ -217,7 +217,7 @@ class _StepLogger(object):
             try:
                 self.parent = parent
                 context()["_current_step"] = self
-                checkpoint.message = name
+                checkpoint.message = dispay_name
                 command_log.commandName = name
                 command_log.args = args
                 self.parent.add_log(command_log)
@@ -235,7 +235,7 @@ class _StepLogger(object):
     def get_parent(self):
         return self.parent
 
-    def set_status(self, success: bool):
+    def set_status(self, success: bool, result=None):
         duration = round(time.time() * 1000) - self.st_time
         self.checkpoint.duration = duration
         self.command_log.duration = duration
@@ -245,3 +245,7 @@ class _StepLogger(object):
         else:
             self.checkpoint.type = MessageType.TestStepPass if success else MessageType.TestStepFail
             self.command_log.result = "success" if success else "failed"
+
+        if result is not None:
+            self.command_log.result = result
+

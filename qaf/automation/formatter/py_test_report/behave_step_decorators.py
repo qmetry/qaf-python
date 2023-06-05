@@ -19,8 +19,9 @@
 #  SOFTWARE.
 import re
 
-from qaf.automation.formatter.py_test_report.meta_info import pytest_component
+from qaf.automation.core.test_base import start_step, end_step
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
+from qaf.automation.formatter.qaf_report.util.utils import step_status
 
 
 class step(object):
@@ -30,28 +31,34 @@ class step(object):
         self.exception = None
         self.keyword = keyword
         self.name = name
-        self.status = PyTestStatus.undefined.name
+        self.status = PyTestStatus.undefined
 
-    def before_step(self, step=None, *args, **kwargs):
+    def before_step(self, func, *args, **kwargs):
         try:
             if args:
                 self.args = [*args, ]
-                self.name = re.sub(r'\((.*?)\)', lambda match: str(self.args.pop(0)), self.name)
-        except:
-            pass
-        pytest_component.PyTestStep._before_step(self.name, self.keyword, step, *args)
+                display_name = self.keyword + ' ' + re.sub(r'\((.*?)\)', lambda match: str(self.args.pop(0)), self.name)
+                self.args = [*args, ]
+        except Exception as e:
+            display_name = self.keyword + ' ' + self.name
+        start_step(func.__name__, display_name, [*args,])
 
-    def after_step(self, status, exception=None):
-        pytest_component.PyTestStep._after_step(status=status, exception=exception)
+    def after_step(self, status, result):
+        self.status = status
+        status_text = step_status(self)
+        b_status = bool(re.search('(?i)pass', status_text)) if bool(re.search('(?i)fail|pass', status_text)) else None
+        end_step(b_status, result)
 
-    def __call__(self, step):
+    def __call__(self, func):
         def wrapped_step(context, *args, **kwargs):
-            self.before_step(step, *args, **kwargs)
+            self.before_step(func, *args, **kwargs)
             try:
-                step(context, *args, **kwargs)
-                self.after_step(status=PyTestStatus.passed.name)
+                res = func(context, *args, **kwargs)
+                self.after_step(status=PyTestStatus.passed, result=res)
+                return res
             except Exception as e:
-                self.after_step(status=PyTestStatus.failed.name, exception=e)
+                self.exception = e
+                self.after_step(status=PyTestStatus.failed, result=None)
                 raise e
 
         return wrapped_step

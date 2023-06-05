@@ -116,7 +116,7 @@ class BaseEnvironment:
                     error_message = error_message.splitlines()
                     testcase_run_result.throwable = error_message
                 elif step.status == Status.skipped or step.status == Status.untested:
-                    start_step(step.keyword + ' ' + step.name)
+                    start_step(step.name, step.keyword + ' ' + step.name)
                     end_step(None)
         else:
             if is_verification_failed():
@@ -155,7 +155,7 @@ class BaseEnvironment:
 
     def before_step(self, context, step):
         self.current_step = step
-        start_step(step.keyword + ' ' + step.name)
+        start_step(step.name, step.keyword + ' ' + step.name)
         # start_step("base environment")
 
     def after_step(self, context, step):
