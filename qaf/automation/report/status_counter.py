@@ -57,3 +57,9 @@ class StatusCounter(object):
 
     def get_pass_rate(self):
         return self._pass * 100 / (self._pass + self._fail + self._skip) if self._pass > 0 else 0
+
+    def reset(self, staus):
+        if "pass" in staus:
+            self._pass = staus["pass"]
+            self._skip = staus["skip"]
+            self._fail = staus["fail"]

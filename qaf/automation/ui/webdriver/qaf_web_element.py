@@ -76,7 +76,7 @@ class QAFWebElement(RemoteWebElement):
         cls.cacheable = cacheable
 
         cls._id = remote_webelement.id
-        cls._w3c = remote_webelement._w3c
+        #cls._w3c = remote_webelement._w3c
         return cls(locator='')
 
     def get_description(self, msg: Optional[str] = '') -> str:

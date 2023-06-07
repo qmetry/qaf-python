@@ -39,6 +39,8 @@ class step(object):
                 self.args = [*args, ]
                 display_name = self.keyword + ' ' + re.sub(r'\((.*?)\)', lambda match: str(self.args.pop(0)), self.name)
                 self.args = [*args, ]
+            else:
+                display_name = self.keyword + ' ' + self.name
         except Exception as e:
             display_name = self.keyword + ' ' + self.name
         start_step(func.__name__, display_name, [*args,])

@@ -8,7 +8,8 @@ class GenericOptions(BaseOptions):
     @author: Chirag Jayswal
     """
     def __init__(self, option={}) -> None:
-        self.__dict__.update(option.__dict__)
+        if hasattr(option,'__dict__'):
+            self.__dict__.update(option.__dict__)
         super().__init__()
 
     def to_capabilities(self):

@@ -40,31 +40,32 @@ def create_driver(driver_name):
         return __start_webdriver(driver_name)
 
 
-def __start_appium_webdriver(driver_name) -> None:
+def __start_appium_webdriver(driver_name):
     from appium import webdriver
     from qaf.automation.ui.webdriver import qaf_web_driver as qafwebdriver
 
     driver_name = re.sub(r'(?i)remote|driver', '', driver_name)
     desired_capabilities = get_desired_capabilities(driver_name=driver_name)
-    CM.get_bundle().set_property("driver.desiredCapabilities", desired_capabilities)
-    options = GenericOptions()
+    driver_options = get_driver_options(driver_name=driver_name)
+    options = GenericOptions(driver_options)
     options.load_capabilities(desired_capabilities)
+    CM.get_bundle().set_property("driver.desiredCapabilities", options.to_capabilities())
+
     __under_laying_driver = webdriver.Remote(command_executor=get_server_url(),
                                              options=options)
     CM.get_bundle().set_property("driverCapabilities", __under_laying_driver.capabilities)
     return qafwebdriver.QAFWebDriver(__under_laying_driver)
 
 
-def __start_webdriver(driver_name, is_remote_driver=False) -> None:
+def __start_webdriver(driver_name, is_remote_driver=False):
     from qaf.automation.ui.webdriver import qaf_web_driver as qafwebdriver
 
     driver_name = re.sub(r'(?i)remote|driver', '', driver_name)
     desired_capabilities = get_desired_capabilities(driver_name=driver_name)
-    CM.get_bundle().set_property("driver.desiredCapabilities", desired_capabilities)
-
     driver_options = get_driver_options(driver_name=driver_name)
     options = GenericOptions(driver_options)
     options.load_capabilities(desired_capabilities)
+    CM.get_bundle().set_property("driver.desiredCapabilities", options.to_capabilities())
 
     if is_remote_driver:
         # Selenium Remote Driver
@@ -121,8 +122,12 @@ def get_desired_capabilities(driver_name: str) -> dict:
 
 def get_driver_options(driver_name: str):
     try:
-        class_name = 'selenium.webdriver.{driver_name}.options.Options'. \
-            format(driver_name=driver_name)
+        if "appium" in driver_name.lower():
+            from appium.options.common import AppiumOptions
+            return AppiumOptions()
+        else:
+            class_name = 'selenium.webdriver.{driver_name}.options.Options'. \
+                format(driver_name=driver_name)
         options = load_class(class_name)()
         return options
     except Exception as e:
@@ -131,11 +136,12 @@ def get_driver_options(driver_name: str):
 
 def get_server_url() -> str:
     remote_server = str(CM().get_str_for_key(AP.REMOTE_SERVER))
-    if CM().get_int_for_key(AP.REMOTE_PORT) is None:
+    parsed_url = parse.urlparse(remote_server)
+
+    if parsed_url.scheme or CM().get_int_for_key(AP.REMOTE_PORT) is None:
         return remote_server
 
     remote_port = int(CM().get_int_for_key(AP.REMOTE_PORT))
-    parsed_url = parse.urlparse(remote_server)
     if parsed_url.hostname:
         scheme = parsed_url.scheme
         remote_server = parsed_url.hostname

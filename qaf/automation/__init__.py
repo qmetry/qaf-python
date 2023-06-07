@@ -18,3 +18,17 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
+from qaf.automation.core.qaf_exceptions import KeyNotFoundError
+from qaf.automation.keys.application_properties import ApplicationProperties as AP
+
+
+if CM.get_bundle().get_string(key=AP.TESTING_APPROACH,default="behave").lower() == 'behave':
+    from behave.runner_util import load_step_modules
+    import os
+
+    import qaf.automation.step_def as step_def_path
+    step_def_path = str(os.path.abspath(step_def_path.__file__)).replace('/__init__.py', '')
+
+    SUBSTEP_DIRS = [step_def_path]
+    load_step_modules(SUBSTEP_DIRS)

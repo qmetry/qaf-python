@@ -18,6 +18,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
 from qaf.automation.core.load_class import load_class
@@ -40,16 +41,22 @@ def register_updaters():
     return listeners
 
 
-result_updaters = register_updaters()
+# result_updaters = register_updaters()
+def submit_result(result, result_updater):
+    try:
+        logging.getLogger().info(
+            result_updater.get_tool_name() + " updating::" + result.get_name() + " - " + result.status)
+        executor = CM.get_bundle().get_or_set("__executor", ThreadPoolExecutor(max_workers=1))
+        executor.submit(result_updater.update_result,result)
+    except Exception:
+        logging.getLogger().exception(
+            result_updater.get_tool_name() + " Unable to update result::" + result.get_name() + " - " + result.status)
 
 
 def update_result(result):
     # TODO: use executor https://docs.python.org/3/library/concurrent.futures.html
     # from multiprocessing import parent_process
+    result_updaters = CM.get_bundle().get_or_set("__result_updators", register_updaters())
     if result_updaters is not None:
         for result_updater in result_updaters:
-            try:
-                logging.getLogger().info(result_updater.get_tool_name() + " updating::" + result.get_name() + " - " + result.status)
-                result_updater.update_result(result)
-            except Exception:
-                logging.getLogger().exception(result_updater.get_tool_name() + " Unable to update result::" + result.get_name() + " - " + result.status)
+            submit_result(result, result_updater)

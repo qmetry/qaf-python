@@ -49,10 +49,9 @@ class QAFWebDriver(RemoteWebDriver):
         self.__listeners.append(QAFWebDriverListener())
 
         RemoteWebDriver.__init__(self, command_executor=under_laying_driver.command_executor,
-                                 desired_capabilities=under_laying_driver.desired_capabilities,
                                  browser_profile=browser_profile,
                                  proxy=proxy,
-                                 keep_alive=keep_alive, file_detector=file_detector, options=options)
+                                 file_detector=file_detector, options=options)
 
         if CM().contains_key(AP.WEBDRIVER_COMMAND_LISTENERS):
             class_name = CM().get_str_for_key(AP.WEBDRIVER_COMMAND_LISTENERS)

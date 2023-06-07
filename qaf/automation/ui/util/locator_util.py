@@ -71,19 +71,20 @@ def parse_locator(locator: str, w3c=False) -> (str, str, str, dict):
     by = ""
     loc_value = ""
     kv = loc.split("=", 1)
-    if len(kv) == 2:
+    loc_value = kv[0]
+    if loc.startswith("./") or loc.startswith("//"):
+        by = By.XPATH
+        loc_value = loc
+    elif loc.startswith(".") or loc.startswith("#"):
+        by = By.CSS_SELECTOR
+        loc_value = loc
+    elif len(kv) == 2:
         by_mappings = {"css": By.CSS_SELECTOR, "tagname": By.TAG_NAME, "link": By.LINK_TEXT,
                        "partiallink": By.PARTIAL_LINK_TEXT, "classname": By.CLASS_NAME}
         by = by_mappings.get(kv[0].replace(" ", "").lower(), kv[0].lower())
         loc_value = kv[1]
     else:
-        loc_value = kv[0]
-        if kv[0].startswith("./") or kv[0].startswith("//"):
-            by = By.XPATH
-        elif kv[0].startswith(".") or kv[0].startswith("#"):
-            by = By.CSS_SELECTOR
-        else:
-            by = By.XPATH
-            loc_value = "//*[@name='{0}' or @id='{0}' or @value='{0}']".format(kv[0])
+        by = By.XPATH
+        loc_value = "//*[@name='{0}' or @id='{0}' or @value='{0}']".format(kv[0])
 
     return by, loc_value, description, metadata
