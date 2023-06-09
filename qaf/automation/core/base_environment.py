@@ -25,10 +25,11 @@ from behave.contrib.scenario_autoretry import patch_scenario_with_autoretry as a
 from behave.model_core import Status
 
 from qaf.automation.core.test_base import tear_down, start_step, end_step, get_command_logs, get_checkpoint_results, \
-    is_verification_failed, clear_assertions_log
+    is_verification_failed, clear_assertions_log, get_bundle
 from qaf.automation.formatter.qaf_report.util.utils import step_status
 from qaf.automation.integration.result_updator import update_result
 from qaf.automation.integration.testcase_run_result import TestCaseRunResult
+from qaf.automation.keys.application_properties import ApplicationProperties
 from qaf.automation.util.datetime_util import current_timestamp
 
 
@@ -52,6 +53,7 @@ class BaseEnvironment:
         self.current_scenario = scenario
         self.startTime = current_timestamp()
         clear_assertions_log()
+        get_bundle().set_property(ApplicationProperties.CURRENT_TEST_NAME, scenario.name)
 
     def after_scenario(self, context, scenario):
 
@@ -71,7 +73,10 @@ class BaseEnvironment:
         testcase_run_result.executionInfo = {
             "testName": "Behave Test",
             "suiteName": "Behave Suite",
-            "driverCapabilities": {}
+            "driverCapabilities": {
+                "browser-desired-capabilities":get_bundle().get("driver.desiredCapabilities", {}),
+                "browser-actual-capabilities": get_bundle().get("driverCapabilities",{})
+            }
         }
         if scenario.description:
             testcase_run_result.metaData["description"] = scenario.description

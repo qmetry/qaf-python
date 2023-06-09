@@ -151,7 +151,7 @@ class ConfigurationsManager(metaclass=Singleton):
         if default_value is None:
             default_value = {}
         if self.contains_key(key) and isinstance(self.__dict[key], str):
-            return json.loads(self.__dict[key])
+            return json.loads(self.__dict.get_string(key))
         return default_value
 
     @staticmethod

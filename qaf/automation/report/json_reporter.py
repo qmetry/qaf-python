@@ -157,14 +157,10 @@ class JsonReporter(TestCaseResultUpdator):
                     },
                     "browser-desired-capabilities": {},
                     "browser-actual-capabilities": {}
-
                 }
             }
             if "driverCapabilities" in result.executionInfo:
-                test_overview.get("envInfo")["browser-desired-capabilities"] = get_bundle().get(
-                    "driver.desiredCapabilities", {})
-                test_overview.get("envInfo")["browser-actual-capabilities"] = get_bundle().get(
-                    "driverCapabilities")
+                test_overview["envInfo"].update(result.executionInfo["driverCapabilities"])
 
         test_status = {
             # "status": testStatusCounter.get_status(),
