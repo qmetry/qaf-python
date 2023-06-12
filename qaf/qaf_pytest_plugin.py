@@ -12,24 +12,34 @@ from qaf.automation.keys.application_properties import ApplicationProperties
 from qaf.automation.util.dataprovider_util import get_testdata
 
 get_bundle().set_property(ApplicationProperties.TESTING_APPROACH, "pytest")
+dataprovider = pytest.mark.dataprovider
+metadata = pytest.mark.metaData
+groups = pytest.mark.groups
 
 
 def pytest_generate_tests(metafunc):
     global_testdata = get_bundle().get_raw_value("global.testdata")
     dataprovider = json.loads(global_testdata) if global_testdata else None
     for dp in [dp for dp in metafunc.definition.own_markers if dp.name.lower() == "dataprovider"]:
-        dataprovider = _get_dp(dp)
-
-    if dataprovider is not None:
+        dataprovider = _get_dp(dp) #JSON_DATA_TABLE
+    meta_data = _get_metadata(metafunc.definition.own_markers)
+    if dataprovider is not None or "JSON_DATA_TABLE" in meta_data:
         param = [fixturename for fixturename in metafunc.fixturenames if "data" in fixturename.lower()]
         if param and len(param) > 0:
             testname = metafunc.definition.name
             classname = metafunc.definition.cls.__name__ if metafunc.definition.cls is not None else ""
-            testdata = get_testdata(dataprovider, {"method": testname, "class": classname})
+            meta_data = meta_data | {"method": testname, "class": classname}
+            testdata = meta_data["JSON_DATA_TABLE"] if "JSON_DATA_TABLE" in meta_data\
+                else get_testdata(dataprovider, meta_data)
             ids = [o.get("tcId", o.get("summary")) for o in testdata]
             metafunc.parametrize(argnames=param[0], argvalues=tuple(testdata), ids=tuple(ids))
         else:
             raise Exception("missing argument with name contains 'data' ")
+
+
+def pytest_collection_modifyitems(session, config, items):
+    print("pytest_collection_modifyitems")
+    pass
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -87,16 +97,16 @@ def report_result(request):
     testcase_run_result.endtime = int(request.node.rep_call.stop * 1000)  # self.startTime + (test.duration * 1000)
     testcase_run_result.metaData = {"name": request.node.name, "resultFileName": request.node.name,
                                     "reference": six.text_type(request.node.nodeid),
-                                    "description": request.node.originalname}|_get_metadata(request.node.own_markers)
-    if hasattr(request.node,"callspec"):
+                                    "description": request.node.originalname} | _get_metadata(request.node.own_markers)
+    if hasattr(request.node, "callspec"):
         testcase_run_result.testData = [request.node.callspec.params]
     testcase_run_result.throwable = request.node.rep_call.longreprtext
     testcase_run_result.executionInfo = {
         "testName": "PyTest",
         "suiteName": request.session.name,
         "driverCapabilities": {
-            "browser-desired-capabilities":get_bundle().get("driver.desiredCapabilities", {}).copy(),
-            "browser-actual-capabilities": get_bundle().get("driverCapabilities",{}).copy()
+            "browser-desired-capabilities": get_bundle().get("driver.desiredCapabilities", {}).copy(),
+            "browser-actual-capabilities": get_bundle().get("driverCapabilities", {}).copy()
         }
     }
     testcase_run_result.status = PyTestStatus.from_name(request.node.rep_call.outcome).name
@@ -105,18 +115,26 @@ def report_result(request):
 
 
 def _get_metadata(markers):
-    metadata = {"groups":[]}
+    metadata = {"groups": []}
     for marker in markers:
         if marker.name.lower() == "dataprovider":
             metadata.update(_get_dp(marker))
-        elif marker.args:
-            metadata[marker.name] : marker.args
-        elif marker.kwargs:
+        elif marker.args or marker.kwargs:
             metadata.update(marker.kwargs)
+            if marker.args:
+                if marker.name.lower() == "groups":
+                    metadata["groups"]+=list(marker.args)
+                else: metadata[marker.name]: marker.args
         else:
-            metadata["groups"].append(marker.args)
+            metadata["groups"].append(marker.name)
     return metadata
 
 
 def _get_dp(marker):
     return {"_dataFile": marker.args[0]} | marker.kwargs if marker.args else marker.kwargs
+
+
+def pytest_collect_file(parent, file_path):
+    if file_path.suffix == ".feature":
+        from qaf.automation.bdd2.bdd2test_factory import BDD2File
+        return BDD2File.from_parent(parent, path=file_path)

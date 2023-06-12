@@ -152,7 +152,7 @@ class PropretyUtil(dict):
                             v = self._rnd(opt)
                         else:
                             v = ext_dict.get(opt, self.get(opt, prefix + opt + suffix))
-                    accum.append(v)
+                    accum.append(str(v))
                 except Exception as e:
                     raise e
             else:

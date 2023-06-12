@@ -17,11 +17,14 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+import inspect
 import re
 
 from qaf.automation.core.test_base import start_step, end_step
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
 from qaf.automation.formatter.qaf_report.util.utils import step_status
+
+steps_mapping = {}
 
 
 class step(object):
@@ -32,18 +35,20 @@ class step(object):
         self.keyword = keyword
         self.name = name
         self.status = PyTestStatus.undefined
+        self.pattern = r'\((.*?)\)'
 
     def before_step(self, func, *args, **kwargs):
         try:
-            if args:
+            if args or kwargs:
                 self.args = [*args, ]
-                display_name = self.keyword + ' ' + re.sub(r'\((.*?)\)', lambda match: str(self.args.pop(0)), self.name)
+                display_name = self._formate_name(args, kwargs)
+                # self.keyword + ' ' + re.sub(r'\((.*?)\)', lambda match: str(self.args.pop(0)), self.name)
                 self.args = [*args, ]
             else:
                 display_name = self.keyword + ' ' + self.name
         except Exception as e:
             display_name = self.keyword + ' ' + self.name
-        start_step(func.__name__, display_name, [*args,])
+        start_step(func.__name__, display_name, [*args, ])
 
     def after_step(self, status, result):
         self.status = status
@@ -52,10 +57,10 @@ class step(object):
         end_step(b_status, result)
 
     def __call__(self, func):
-        def wrapped_step(context, *args, **kwargs):
+        def wrapped_step(*args, **kwargs):
             self.before_step(func, *args, **kwargs)
             try:
-                res = func(context, *args, **kwargs)
+                res = func(*args, **kwargs)
                 self.after_step(status=PyTestStatus.passed, result=res)
                 return res
             except Exception as e:
@@ -63,4 +68,17 @@ class step(object):
                 self.after_step(status=PyTestStatus.failed, result=None)
                 raise e
 
+        module = func.__module__  # sys.modules[func.__module__]
+        wrapped_step.__module__ = func.__module__
+        wrapped_step.argSpec = inspect.getfullargspec(func)
+        steps_mapping[self.name] = wrapped_step
         return wrapped_step
+
+    def _formate_name(self, *args, **kwargs):
+        name = self.name
+
+        if args:
+            name = re.sub(self.pattern, lambda match: str(args.pop(0)), name)
+        if kwargs:
+            name = re.sub(self.pattern, lambda match: str(kwargs[match.group()]), name)
+        return self.keyword + ' ' + name

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #  Copyright (c) 2022 Infostretch Corporation
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,32 +18,3 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-# @Author: Chirag Jayswal
-# module settings
-__version__ = '1.0.0'
-__all__ = [
-    'get_csvdata_as_map',
-]
-
-import ast
-import csv
-
-
-def get_csvdata_as_map(csvfile):
-    rows = []
-    with open(csvfile, encoding='utf-8') as csvf:
-        return get_list_of_map(csvf)
-
-def get_list_of_map(csv_data, delimiter=","):
-    rows = []
-    csvReader = csv.DictReader(csv_data, delimiter=delimiter, skipinitialspace=True)
-    for row in csvReader:
-        first_key = next(iter(row))
-        if not row[first_key].startswith("#"):
-            for key, val in row.items():
-                try:
-                    row[key] = ast.literal_eval(val)
-                except:
-                    pass
-            rows.append(row)
-    return rows

@@ -31,7 +31,7 @@ if not CM().contains_key(key=AP.TESTING_APPROACH):
     raise KeyNotFoundError(message=AP.TESTING_APPROACH + ' e.g. behave, pytest')
 
 if CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'pytest':
-    from qaf.automation.formatter.py_test_report.behave_step_decorators import step
+    from qaf.automation.formatter.py_test_report.qafstep_decorator import step
 elif CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'behave':
     from behave import *
     use_step_matcher("re")
