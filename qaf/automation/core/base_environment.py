@@ -26,10 +26,10 @@ from behave.model_core import Status
 
 from qaf.automation.core.test_base import tear_down, start_step, end_step, get_command_logs, get_checkpoint_results, \
     is_verification_failed, clear_assertions_log, get_bundle
-from qaf.automation.formatter.qaf_report.util.utils import step_status
 from qaf.automation.integration.result_updator import update_result
 from qaf.automation.integration.testcase_run_result import TestCaseRunResult
 from qaf.automation.keys.application_properties import ApplicationProperties
+from qaf.automation.report.utils import step_status
 from qaf.automation.util.datetime_util import current_timestamp
 
 

@@ -26,9 +26,9 @@ from qaf.automation.core.singleton import Singleton
 from qaf.automation.core.test_base import tear_down, start_step, end_step, get_checkpoint_results, get_command_logs, \
     is_verification_failed, clear_assertions_log
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
-from qaf.automation.formatter.qaf_report.util.utils import step_status
 from qaf.automation.integration.result_updator import update_result
 from qaf.automation.integration.testcase_run_result import TestCaseRunResult
+from qaf.automation.report.utils import step_status
 from qaf.automation.util.datetime_util import current_timestamp
 
 OUTPUT_TEST_RESULTS_DIR = 'test-results'

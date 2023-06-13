@@ -15,6 +15,7 @@ from qaf.qaf_pytest_plugin import metadata
 """
 is_dryrun_mode = True
 
+
 @dataclass
 class Bdd2Step:
     _name: str
@@ -39,7 +40,7 @@ class Bdd2Step:
         self._name = value.replace(self.keyword, "").strip()
 
     def __str__(self):
-        return self.keyword + ' ' +self.name
+        return self.keyword + ' ' + self.name
 
 
 @dataclass
@@ -52,19 +53,20 @@ class BDD2Scenario:
     description: list[str] = field(default_factory=list)
     background = None
 
-
     def get_test_func(self):
         if "JSON_DATA_TABLE" in self.metadata:
             @metadata(**self.metadata)
             def test_secario(testdata):
                 for bdd_step in self.steps.copy():
                     execute_step(bdd_step, testdata, is_dryrun_mode)
+
             return test_secario
         else:
             @metadata(**self.metadata)
             def test_secario():
                 for bdd_step in self.steps.copy():
                     execute_step(bdd_step, {}, is_dryrun_mode)
+
             return test_secario
 
 

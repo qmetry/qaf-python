@@ -27,10 +27,10 @@ from threading import Lock
 from time import strftime
 
 from qaf.automation.core.test_base import get_bundle
-from qaf.automation.formatter.qaf_report.util.utils import scenario_status
 from qaf.automation.integration.testcase_result_updator import TestCaseResultUpdator
 from qaf.automation.integration.testcase_run_result import TestCaseRunResult
 from qaf.automation.report.status_counter import StatusCounter
+from qaf.automation.report.utils import scenario_status
 from qaf.automation.util.datetime_util import current_timestamp
 
 

@@ -17,12 +17,12 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-import inspect
 import re
 
+from qaf.automation.bdd2.qaf_teststep import QAFTestStep
 from qaf.automation.core.test_base import start_step, end_step
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
-from qaf.automation.formatter.qaf_report.util.utils import step_status
+from qaf.automation.report.utils import step_status
 
 steps_mapping = {}
 
@@ -57,22 +57,24 @@ class step(object):
         end_step(b_status, result)
 
     def __call__(self, func):
-        def wrapped_step(*args, **kwargs):
-            self.before_step(func, *args, **kwargs)
-            try:
-                res = func(*args, **kwargs)
-                self.after_step(status=PyTestStatus.passed, result=res)
-                return res
-            except Exception as e:
-                self.exception = e
-                self.after_step(status=PyTestStatus.failed, result=None)
-                raise e
-
-        module = func.__module__  # sys.modules[func.__module__]
-        wrapped_step.__module__ = func.__module__
-        wrapped_step.argSpec = inspect.getfullargspec(func)
-        steps_mapping[self.name] = wrapped_step
-        return wrapped_step
+        return QAFTestStep(self.name).__call__(func)
+        # def wrapped_step(*args, **kwargs):
+        #     self.before_step(func, *args, **kwargs)
+        #     try:
+        #         res = func(*args, **kwargs)
+        #         self.after_step(status=PyTestStatus.passed, result=res)
+        #         return res
+        #     except Exception as e:
+        #         self.exception = e
+        #         self.after_step(status=PyTestStatus.failed, result=None)
+        #         raise e
+        #
+        # module = func.__module__  # sys.modules[func.__module__]
+        # wrapped_step.__module__ = func.__module__
+        # wrapped_step.argSpec = inspect.getfullargspec(func)
+        # steps_mapping[self.name] = wrapped_step
+        # step_registry.register_step(QAFTestStep(self.name,func))
+        # return wrapped_step
 
     def _formate_name(self, *args, **kwargs):
         name = self.name
