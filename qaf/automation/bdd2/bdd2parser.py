@@ -75,7 +75,7 @@ def parse(content):
                 # start tarcking tags
                 if cur_scenario.name != "":  # tags can be multiline
                     cur_scenario = BDD2Scenario(name="", line_number=0,
-                                                metadata=feature.metadata)
+                                                metadata=feature.metadata.copy())
                 _parsTags(stmt, cur_scenario.metadata)
             elif FEATURE.lower() == type.lower():
                 cur_scenario.line_number = line_number
@@ -87,7 +87,8 @@ def parse(content):
                 data_table = None  # reset
                 example_table = None  # reset
                 if cur_scenario.name != "":  # no tags create new and set current
-                    cur_scenario = BDD2Scenario(name=stmt.split(":", 1)[1].strip(), line_number=line_number)
+                    cur_scenario = BDD2Scenario(name=stmt.split(":", 1)[1].strip(), line_number=line_number,
+                                                metadata=feature.metadata.copy())
                 else:  # tags collected update name and location
                     cur_scenario.line_number = line_number
                     cur_scenario.name = stmt.split(":", 1)[1].strip()

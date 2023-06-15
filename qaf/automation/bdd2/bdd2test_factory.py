@@ -14,6 +14,7 @@ from qaf.qaf_pytest_plugin import metadata
 @author: Chirag Jayswal
 """
 
+
 # load_step_modules()
 @dataclass
 class Bdd2Step:
@@ -53,8 +54,12 @@ class BDD2Scenario:
     background = None
     is_dryrun_mode: bool = False
 
+    @property
+    def has_dataprovider(self):
+        return "JSON_DATA_TABLE" in self.metadata or "datafile" in self.metadata
+
     def get_test_func(self):
-        if "JSON_DATA_TABLE" in self.metadata:
+        if self.has_dataprovider:
             @metadata(**self.metadata)
             def test_secario(testdata):
                 for bdd_step in self.steps.copy():
