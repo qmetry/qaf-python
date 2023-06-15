@@ -27,14 +27,14 @@ def pytest_generate_tests(metafunc):
     for dp in [dp for dp in metafunc.definition.own_markers if dp.name.lower() == "dataprovider"]:
         dataprovider = _get_dp(dp) #JSON_DATA_TABLE
     meta_data = _get_metadata(metafunc.definition.own_markers)
-    if dataprovider is not None or "JSON_DATA_TABLE" in meta_data:
+    if dataprovider is not None or "JSON_DATA_TABLE" in meta_data or "datafile" in meta_data:
         param = [fixturename for fixturename in metafunc.fixturenames if "data" in fixturename.lower()]
         if param and len(param) > 0:
             testname = metafunc.definition.name
             classname = metafunc.definition.cls.__name__ if metafunc.definition.cls is not None else ""
             meta_data = meta_data | {"method": testname, "class": classname}
             testdata = meta_data["JSON_DATA_TABLE"] if "JSON_DATA_TABLE" in meta_data\
-                else get_testdata(dataprovider, meta_data)
+                else get_testdata(dataprovider or meta_data, meta_data)
             ids = [o.get("tcId", o.get("summary")) for o in testdata]
             metafunc.parametrize(argnames=param[0], argvalues=tuple(testdata), ids=tuple(ids))
         else:

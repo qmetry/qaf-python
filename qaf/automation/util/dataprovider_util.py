@@ -40,7 +40,7 @@ def get_testdata(dataprovider: dict, params: dict):
         datafile = CM.get_bundle().resolve(dataprovider.get("DATAFILE",dataprovider.get("_DATAFILE")), params)
         if re.search(r'(?i)\.csv$|\.txt$', datafile):
             _testdata = csv_util.get_csvdata_as_map(datafile)
-        elif datafile.lower().encode(".json"):
+        elif datafile.lower().endswith(".json"):
             with open(datafile) as f:
                 _testdata = json.load(f)
         else:
