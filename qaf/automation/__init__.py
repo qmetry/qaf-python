@@ -22,13 +22,20 @@ from qaf.automation.core.configurations_manager import ConfigurationsManager as 
 from qaf.automation.core.qaf_exceptions import KeyNotFoundError
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
 
-
 if CM.get_bundle().get_string(key=AP.TESTING_APPROACH,default="behave").lower() == 'behave':
     from behave.runner_util import load_step_modules
-    import os
+else:
+    from qaf.automation.bdd2.bddstep_executor import load_step_modules
 
-    import qaf.automation.step_def as step_def_path
-    step_def_path = str(os.path.abspath(step_def_path.__file__)).replace('/__init__.py', '')
 
-    SUBSTEP_DIRS = [step_def_path]
-    load_step_modules(SUBSTEP_DIRS)
+import os
+
+import qaf.automation.step_def as step_def_path
+step_def_path = str(os.path.abspath(step_def_path.__file__)).replace('/__init__.py', '')
+
+QAF_STEPS = [step_def_path]
+load_step_modules(QAF_STEPS)
+step_provider_pkgs = CM.get_bundle().get_string(AP.STEP_PROVIDER_PKG)
+if step_provider_pkgs:
+    step_provider_pkg_list = step_provider_pkgs.replace('.','/').split(";")
+    load_step_modules(step_provider_pkg_list)

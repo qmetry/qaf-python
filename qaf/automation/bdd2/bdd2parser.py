@@ -21,6 +21,7 @@ BACKGROUND: str = "Background"
 @author: Chirag Jayswal
 """
 
+
 def _parsTags(line, metadata):
     for tag in line.split("@"):
         tag = tag.strip()
@@ -29,9 +30,12 @@ def _parsTags(line, metadata):
             metadata.update({k: v})
         elif tag != "":
             if "groups" in metadata:
-                metadata["groups"].add(tag)
+                # metadata["groups"].add(tag)
+                metadata["groups"].append(tag)
             else:
-                metadata["groups"] = set([tag])
+                # 'set' object has no attribute 'to_json_dict'
+                # metadata["groups"] = set([tag])
+                metadata["groups"] = [tag]
 
 
 def parse(content):
@@ -117,7 +121,7 @@ def _to_list(table_data):
     # data_errors =  list(filter(lambda row: row[1] != "|" or row[-1]!="|" , table_data))
     # if data_errors:
     #     raise Exception("Data table must start and end with '|'", data_errors)
-    #data = (data.strip()[1:-1] for data in table_data)
+    # data = (data.strip()[1:-1] for data in table_data)
     return get_list_of_map(table_data, '|')
 
 

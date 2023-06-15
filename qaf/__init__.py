@@ -1,5 +1,3 @@
-__version__ = "1.2.1"
-
 #  Copyright (c) 2022 Infostretch Corporation
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,4 +18,11 @@ __version__ = "1.2.1"
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+from qaf.automation.bdd2.step_registry import *  # pylint: disable=wildcard-import
 
+# pylint: disable=undefined-all-variable
+__all__ = [
+    "given", "when", "then", "step", "and",
+    "Given", "When", "Then", "And"
+]
+__version__ = "1.0.0"

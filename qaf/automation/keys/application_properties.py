@@ -57,5 +57,6 @@ class ApplicationProperties:
     ENV_DEFAULT_LANGUAGE = "env.default.locale"
     EXECUTABLE_PATH = 'executable.path'
     TESTING_APPROACH = 'testing.approach'
+    STEP_PROVIDER_PKG = 'step.provider.pkg'
 
     SELENIUM_SINGLETON = 'selenium.singleton'

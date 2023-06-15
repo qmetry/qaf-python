@@ -89,7 +89,7 @@ class QAFTestStep:
         step_run_context.status = PyTestStatus.executing
 
     def _formate_name(self, *args, **kwargs):
-        name = self.name
+        name = self.description | self.name
         if args:
             name = re.sub(self.pattern, lambda match: str(args.pop(0)), name)
         if kwargs:

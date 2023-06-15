@@ -24,7 +24,8 @@ from qaf.automation.core.test_base import start_step, end_step
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
 from qaf.automation.report.utils import step_status
 
-steps_mapping = {}
+
+#steps_mapping = {}
 
 
 class step(object):

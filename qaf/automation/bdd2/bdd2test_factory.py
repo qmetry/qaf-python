@@ -13,9 +13,10 @@ from qaf.qaf_pytest_plugin import metadata
 """
 @author: Chirag Jayswal
 """
-is_dryrun_mode = True
 
+is_dryrun_mode = False
 
+#load_step_modules()
 @dataclass
 class Bdd2Step:
     _name: str
@@ -78,9 +79,9 @@ class BDD2File(pytest.Module):
         dict_values: List[List[Union[nodes.Item, nodes.Collector]]] = []
         ihook = self.ihook
         for scenario in self.scenarios:
-            self.obj = self
+            self.obj = scenario
             fun = scenario.get_test_func()
-            setattr(self, scenario.name, fun)
+            setattr(scenario, scenario.name, fun)
 
             res = ihook.pytest_pycollect_makeitem(
                 collector=self, name=scenario.name, obj=fun

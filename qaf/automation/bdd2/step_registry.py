@@ -3,7 +3,11 @@ from __future__ import absolute_import
 from behave.matchers import Match, get_matcher
 from behave.textutil import text as _text
 
-
+# pylint: disable=undefined-all-variable
+__all__ = [
+    "given", "when", "then", "step", "and",
+    "Given", "When", "Then", "Step", "And"
+]
 class StepRegistry:
     def __init__(self):
         self.registry = []
@@ -56,7 +60,4 @@ def setup_step_decorators(run_context=None):
 # -----------------------------------------------------------------------------
 setup_step_decorators()
 
-__all__ = [
-    "given", "when", "then", "step", "and",
-    "Given", "When", "Then", "Step", "And"
-]
+
