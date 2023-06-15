@@ -14,9 +14,7 @@ from qaf.qaf_pytest_plugin import metadata
 @author: Chirag Jayswal
 """
 
-is_dryrun_mode = False
-
-#load_step_modules()
+# load_step_modules()
 @dataclass
 class Bdd2Step:
     _name: str
@@ -53,20 +51,21 @@ class BDD2Scenario:
     testdata: dict[str] = field(default_factory=dict)
     description: list[str] = field(default_factory=list)
     background = None
+    is_dryrun_mode: bool = False
 
     def get_test_func(self):
         if "JSON_DATA_TABLE" in self.metadata:
             @metadata(**self.metadata)
             def test_secario(testdata):
                 for bdd_step in self.steps.copy():
-                    execute_step(bdd_step, testdata, is_dryrun_mode)
+                    execute_step(bdd_step, testdata, self.is_dryrun_mode)
 
             return test_secario
         else:
             @metadata(**self.metadata)
             def test_secario():
                 for bdd_step in self.steps.copy():
-                    execute_step(bdd_step, {}, is_dryrun_mode)
+                    execute_step(bdd_step, {}, self.is_dryrun_mode)
 
             return test_secario
 
@@ -76,10 +75,12 @@ class BDD2File(pytest.Module):
         values: List[Union[nodes.Item, nodes.Collector]] = []
         self.scenarios = parse(self.path)
 
+        is_dryrun_mode = self.config.getoption("--dryrun")
         dict_values: List[List[Union[nodes.Item, nodes.Collector]]] = []
         ihook = self.ihook
         for scenario in self.scenarios:
             self.obj = scenario
+            scenario.is_dryrun_mode = is_dryrun_mode
             fun = scenario.get_test_func()
             setattr(scenario, scenario.name, fun)
 

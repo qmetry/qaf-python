@@ -29,12 +29,9 @@ def _parsTags(line, metadata):
             k, v = tag.split(":", 1)
             metadata.update({k: v})
         elif tag != "":
-            if "groups" in metadata:
-                # metadata["groups"].add(tag)
+            if "groups" in metadata and tag not in metadata["groups"]:
                 metadata["groups"].append(tag)
             else:
-                # 'set' object has no attribute 'to_json_dict'
-                # metadata["groups"] = set([tag])
                 metadata["groups"] = [tag]
 
 
@@ -76,7 +73,9 @@ def parse(content):
                 data_table = None  # reset
                 example_table = None  # reset
                 # start tarcking tags
-                cur_scenario = BDD2Scenario(name="", line_number=0)
+                if cur_scenario.name != "":  # tags can be multiline
+                    cur_scenario = BDD2Scenario(name="", line_number=0,
+                                                metadata=feature.metadata)
                 _parsTags(stmt, cur_scenario.metadata)
             elif FEATURE.lower() == type.lower():
                 cur_scenario.line_number = line_number
@@ -87,15 +86,15 @@ def parse(content):
                 _set_data_table(cur_scenario, example_table, data_table)
                 data_table = None  # reset
                 example_table = None  # reset
-                if cur_scenario.name != "":
+                if cur_scenario.name != "":  # no tags create new and set current
                     cur_scenario = BDD2Scenario(name=stmt.split(":", 1)[1].strip(), line_number=line_number)
-                else:
+                else:  # tags collected update name and location
                     cur_scenario.line_number = line_number
                     cur_scenario.name = stmt.split(":", 1)[1].strip()
+
                 if BACKGROUND.lower() == type.lower():
                     feature.background = cur_scenario
-                else:
-                    cur_scenario.metadata.update(feature.metadata)
+                else:  # add scenario
                     cur_scenario.background = feature.background
                     scenarios.append(cur_scenario)
             elif EXAMPLES.lower() == type.lower():

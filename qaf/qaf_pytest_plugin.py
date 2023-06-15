@@ -16,6 +16,10 @@ dataprovider = pytest.mark.dataprovider
 metadata = pytest.mark.metaData
 groups = pytest.mark.groups
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--dryrun", action="store_true", default=False, help="dry run bdd scenarios"
+    )
 
 def pytest_generate_tests(metafunc):
     global_testdata = get_bundle().get_raw_value("global.testdata")
