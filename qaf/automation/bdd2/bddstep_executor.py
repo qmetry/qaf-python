@@ -12,15 +12,16 @@ from qaf.automation.core.reporter import Reporter
 pkg_loaded = False
 
 
-def execute_step(bdd_step, testdata={}, is_dryrun_mode: bool = False):
-    bdd_step_call = bdd_step if type(bdd_step) is str else bdd_step.name
-    found, step, args_dict = _find_match(bdd_step_call, testdata)
+def execute_step(bdd_step_call, testdata={}, is_dryrun_mode: bool = False):
+    from qaf.automation.bdd2.bdd2test_factory import Bdd2Step
+    bdd_step = Bdd2Step(bdd_step_call) if  type(bdd_step_call) is str else bdd_step_call
+    found, step, args_dict = _find_match(bdd_step.name, testdata)
     if not found:
-        Reporter.error("{}  Step Not Found".format(bdd_step_call))
+        Reporter.error(f'{bdd_step.keyword} {bdd_step.name} :Step Not Found'.lstrip())
         if not is_dryrun_mode:
             raise Exception("Step Implementation Not Found")
     else:
-        context = StepRunContext(bdd_step_call, is_dryrun_mode)
+        context = StepRunContext(f'{bdd_step.keyword} {bdd_step.name}'.lstrip(), is_dryrun_mode)
         if args_dict:
             step.executeWithContext(context, **args_dict)
         else:

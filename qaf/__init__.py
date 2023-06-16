@@ -17,12 +17,13 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
 from qaf.automation.bdd2.step_registry import *  # pylint: disable=wildcard-import
+from qaf.automation.core.configurations_manager import ConfigurationsManager
 
+get_bundle = ConfigurationsManager.get_bundle
 # pylint: disable=undefined-all-variable
 __all__ = [
     "given", "when", "then", "step", "and",
-    "Given", "When", "Then", "And"
+    "Given", "When", "Then", "And", "get_bundle"
 ]
 __version__ = "1.0.0"

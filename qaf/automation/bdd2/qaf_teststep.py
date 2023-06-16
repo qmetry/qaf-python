@@ -22,13 +22,24 @@ class StepRunContext:
 
 class QAFTestStep:
 
-    def __init__(self, description="", func: callable = None):
+    def __init__(self, description="", func: callable = None, keyword:str = "Step"):
         if func:
             self.func = func
             self.name = func.__name__
             self.description = description or self.name
         else:
             self.description = description
+            self.name = self.description # inline step
+        self.keyword = keyword
+
+    def __enter__(self):# inline step with Given/When/Then/Step/And(step description):
+        #plugin_manager.hook.start_step(uuid=self.uuid, name=self.name, description=self.description)
+        start_step(self.name, f'{self.keyword} {self.description}')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        #plugin_manager.hook.stop_step(uuid=self.uuid, name=self.name, exc_type=exc_type, exc_val=exc_val,
+        #                              exc_tb=exc_tb)
+        end_step(True if exc_type is None else False, None)
 
     def execute(self, *args, **kwargs):
         step_run_context = StepRunContext()
@@ -89,9 +100,10 @@ class QAFTestStep:
         step_run_context.status = PyTestStatus.executing
 
     def _formate_name(self, *args, **kwargs):
-        name = self.description | self.name
+        name = self.description or self.name
         if args:
             name = re.sub(self.pattern, lambda match: str(args.pop(0)), name)
         if kwargs:
+            name = self.description.format(kwargs)
             name = re.sub(self.pattern, lambda match: str(kwargs[match.group()]), name)
         return self.keyword + ' ' + name

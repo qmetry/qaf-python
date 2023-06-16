@@ -16,16 +16,22 @@ dataprovider = pytest.mark.dataprovider
 metadata = pytest.mark.metaData
 groups = pytest.mark.groups
 
+
+def pytest_report_header(config):
+    return ["Using Qmetry Automation Framework ...", "for web mobile and webservices test automation."]
+
+
 def pytest_addoption(parser):
     parser.addoption(
         "--dryrun", action="store_true", default=False, help="dry run bdd scenarios"
     )
 
+
 def pytest_generate_tests(metafunc):
     global_testdata = get_bundle().get_raw_value("global.testdata")
     dataprovider = json.loads(global_testdata) if global_testdata else None
     for dp in [dp for dp in metafunc.definition.own_markers if dp.name.lower() == "dataprovider"]:
-        dataprovider = _get_dp(dp) #JSON_DATA_TABLE
+        dataprovider = _get_dp(dp)  # JSON_DATA_TABLE
     meta_data = _get_metadata(metafunc.definition.own_markers)
     if dataprovider is not None or "JSON_DATA_TABLE" in meta_data or "datafile" in meta_data:
         param = [fixturename for fixturename in metafunc.fixturenames if "data" in fixturename.lower()]
@@ -33,7 +39,7 @@ def pytest_generate_tests(metafunc):
             testname = metafunc.definition.name
             classname = metafunc.definition.cls.__name__ if metafunc.definition.cls is not None else ""
             meta_data = meta_data | {"method": testname, "class": classname}
-            testdata = meta_data["JSON_DATA_TABLE"] if "JSON_DATA_TABLE" in meta_data\
+            testdata = meta_data["JSON_DATA_TABLE"] if "JSON_DATA_TABLE" in meta_data \
                 else get_testdata(dataprovider or meta_data, meta_data)
             ids = [o.get("tcId", o.get("summary")) for o in testdata]
             metafunc.parametrize(argnames=param[0], argvalues=tuple(testdata), ids=tuple(ids))
@@ -43,7 +49,11 @@ def pytest_generate_tests(metafunc):
 
 def pytest_collection_modifyitems(session, config, items):
     print("pytest_collection_modifyitems")
-    pass
+    for item in items:
+        for _metadata in [m for m in item.own_markers if m.name.lower() == "metadata"]:
+            if "groups" in _metadata.kwargs:
+                for group in _metadata.kwargs["groups"]:
+                    item.add_marker(group)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -64,29 +74,12 @@ def pytest_runtest_makereport(item, call):
     setattr(item, "rep_" + report.when, report)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def session_fixture(request):
-    # request.session.executor = ThreadPoolExecutor(max_workers=1)
-    # request.session.result_updators = register_updaters()
-    # get_bundle().set_property("__executor", request.session.executor)
-    # get_bundle().set_property("__result_updators", request.session.result_updators)
-    pass
-
-
-@pytest.fixture(scope="class", autouse=True)
-def class_fixture(request):
-    pass
-
-
 @pytest.fixture(autouse=True)
 def test_fixture(request):
     clear_assertions_log()
     get_bundle().set_property(ApplicationProperties.CURRENT_TEST_NAME, request.node.name)
     get_bundle().set_property(ApplicationProperties.CURRENT_TEST_RESULT, request.node)
-
     yield
-    # get_bundle().set_property("__executor", request.session.executor)
-    # get_bundle().set_property("__result_updators", request.session.result_updators)
     report_result(request)
     tear_down()
 
@@ -127,8 +120,9 @@ def _get_metadata(markers):
             metadata.update(marker.kwargs)
             if marker.args:
                 if marker.name.lower() == "groups":
-                    metadata["groups"]+=list(marker.args)
-                else: metadata[marker.name]: marker.args
+                    metadata["groups"] += list(marker.args)
+                else:
+                    metadata[marker.name]: marker.args
         else:
             metadata["groups"].append(marker.name)
     return metadata

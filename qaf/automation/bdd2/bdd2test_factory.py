@@ -7,7 +7,6 @@ import pytest
 from _pytest import nodes
 
 from qaf.automation.bdd2.bdd2parser import parse
-from qaf.automation.bdd2.bddstep_executor import execute_step
 from qaf.qaf_pytest_plugin import metadata
 
 """
@@ -59,6 +58,7 @@ class BDD2Scenario:
         return "JSON_DATA_TABLE" in self.metadata or "datafile" in self.metadata
 
     def get_test_func(self):
+        from qaf.automation.bdd2.bddstep_executor import execute_step
         if self.has_dataprovider:
             @metadata(**self.metadata)
             def test_secario(testdata):

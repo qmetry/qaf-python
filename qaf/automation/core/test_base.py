@@ -149,6 +149,9 @@ def end_step(status: bool, result=None):
     if "last_captured_screenshot" in context():
         last_captured_screenshot = context().pop("last_captured_screenshot")
         current_step.checkpoint.screenshot = last_captured_screenshot
+    elif not (success or status):
+        take_screenshot()
+        current_step.checkpoint.screenshot = context().pop("last_captured_screenshot")
     _set_cur_step(current_step.get_parent())
     # del current_step
 

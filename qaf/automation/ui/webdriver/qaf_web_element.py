@@ -43,7 +43,8 @@ from qaf.automation.ui.webdriver.command_tracker import Stage, CommandTracker
 
 
 class QAFWebElement(RemoteWebElement):
-    def __init__(self, locator: str, parent_locator: Optional[str] = '', cacheable: Optional[bool] = False) -> None:
+    def __init__(self, locator: str, parent_locator: Optional[str] = '',
+                 cacheable: Optional[bool] = False, **kwargs) -> None:
 
         self.locator = None
         self.by = None
@@ -56,14 +57,15 @@ class QAFWebElement(RemoteWebElement):
         if len(locator) > 0:
             from qaf.automation.core.test_base import get_driver
             parent = get_driver()
-            value = CM().get_str_for_key(locator, default_value=locator)
+            value = CM.get_bundle().get_raw_value(locator, locator)
+            value = CM.get_bundle().resolve(value, kwargs)
             self.by, self.locator, self.description, self.metadata = parse_locator(value)
             self.cacheable = self.cacheable or self.metadata.get("cacheable", False)
             self._id = -1
             RemoteWebElement.__init__(self, parent=parent, id_=self._id)
 
-        if CM().contains_key(AP.WEBELEMENT_COMMAND_LISTENERS):
-            class_name = CM().get_str_for_key(AP.WEBELEMENT_COMMAND_LISTENERS)
+        if CM.get_bundle().contains_key(AP.WEBELEMENT_COMMAND_LISTENERS):
+            class_name = CM.get_bundle().get_string(AP.WEBELEMENT_COMMAND_LISTENERS)
             self._listeners.append(load_class(class_name)())
 
     @classmethod
@@ -76,7 +78,7 @@ class QAFWebElement(RemoteWebElement):
         cls.cacheable = cacheable
 
         cls._id = remote_webelement.id
-        #cls._w3c = remote_webelement._w3c
+        # cls._w3c = remote_webelement._w3c
         return cls(locator='')
 
     def get_description(self, msg: Optional[str] = '') -> str:
@@ -182,11 +184,11 @@ class QAFWebElement(RemoteWebElement):
         return qaf_web_element_wait(self, wait_time).until_not(ElementHasAttribute(attr_, value_), message)
 
     def wait_for_attribute_matches(self, attr_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
-        message = f'Wait time out for {self.description } {attr_} {value_}'
+        message = f'Wait time out for {self.description} {attr_} {value_}'
         return qaf_web_element_wait(self, wait_time).until(ElementAttributeMatches(attr_, value_), message)
 
     def wait_for_not_attribute_matches(self, attr_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (bool, Any):
-        message = f'Wait time out for {self.description } {attr_} not {value_}'
+        message = f'Wait time out for {self.description} {attr_} not {value_}'
         return qaf_web_element_wait(self, wait_time).until_not(ElementAttributeMatches(attr_, value_), message)
 
     def wait_for_css_class(self, class_name_: str, wait_time: Optional[int] = 0) -> (bool, Any):
@@ -214,12 +216,12 @@ class QAFWebElement(RemoteWebElement):
         return qaf_web_element_wait(self, wait_time).until_not(ElementHasCssStyle(style_name_, value_), message)
 
     def wait_for_css_style_matches(self, style_name_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (
-    bool, Any):
+            bool, Any):
         message = f'Wait time out for {self.description} have css style {style_name_} {value_}'
         return qaf_web_element_wait(self, wait_time).until(ElementCssStyleMatches(style_name_, value_), message)
 
     def wait_for_not_css_style_matches(self, style_name_: str, value_: Matcher, wait_time: Optional[int] = 0) -> (
-    bool, Any):
+            bool, Any):
         message = f'Wait time out for {self.description} have not css style {style_name_} {value_}'
         return qaf_web_element_wait(self, wait_time).until_not(ElementCssStyleMatches(style_name_, value_),
                                                                message)
@@ -667,7 +669,7 @@ class QAFWebElement(RemoteWebElement):
     @staticmethod
     def report(operation: str, outcome: bool, msg: str, **kwargs) -> None:
         key = "element." + operation + "." + ("pass" if outcome else "fail")
-        message_format = CM().get_str_for_key(key)
+        message_format = CM.get_bundle().get_string(key)
 
         not_op_pass_format = "Expected \"{0}\" should not be {operation} : " \
                              "Actual was not {operation}"
@@ -697,7 +699,7 @@ class QAFWebElement(RemoteWebElement):
 
         if kwargs is not None and len(kwargs.keys()) > 0:
             if "op" not in kwargs:
-                kwargs["op"]=""
+                kwargs["op"] = ""
             message = message % kwargs
         if outcome:
             Reporter.log_with_screenshot(message, MessageType.Pass)
@@ -738,5 +740,6 @@ def qaf_web_element_wait(ele: QAFWebElement, timeout, ignored_exceptions=None) -
     return DynamicWait[QAFWebElement](ele, timeout, ignored_exceptions=ignored_exceptions)
 
 
-def _(locator: str) -> QAFWebElement:
-    return QAFWebElement(locator=locator)
+def _(locator: str, parent_locator: Optional[str] = '',
+      cacheable: Optional[bool] = True, **kwargs) -> QAFWebElement:
+    return QAFWebElement(locator=locator, parent_locator=parent_locator, cacheable=cacheable, **kwargs)

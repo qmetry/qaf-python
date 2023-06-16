@@ -79,19 +79,52 @@ class PropretyUtil(dict):
                 for key, value in data.items():
                     self.set_property(key=key, value=json.dumps(value))
 
-    def get_string(self, key, default=None):
+    def contains_key(self, key: str) -> bool:
+        """
+        Check if contains key.
+
+        Args:
+            key (str): Key name to verify key is exist or not.
+
+        Returns:
+            bool: Returns True If contains key else returns False
+
+        """
+        return self.__contains__(key)
+
+    def get_string(self, key: str, default: str = None) -> str:
+        """
+        Returns object for key.
+
+        Args:
+            key (str): Key name to store value
+            default (Optional(str)): This will default value for key, if not provided default value will be None
+
+        Returns:
+            Optional(str): Stored value for key or default
+        """
         val = self.get(key, default)
         return str(val) if val is not None else None
 
-    def get_boolean(self, key, default=None):
+    def get_boolean(self, key: str, default: bool = None) -> bool:
+        """
+        Returns boolean value for key or None.
+
+        Args:
+            key (str): Key name to store value
+            default (Optional(bool)): This will default value for key if not provided default is None
+
+        Returns:
+            Optional(bool): Stored value for key or default
+        """
         val = self.get_string(key, default)
         return to_boolean(val) if val is not None else None
 
-    def get_int(self, key, default=0):
+    def get_int(self, key, default: int = None) -> int:
         val = self.get(key, default)
         return int(val) if val is not None else None
 
-    def set_property(self, key, value):
+    def set_property(self, key: str, value):
         self.__setitem__(key, value)
         if key.startswith("encrypted."):
             dkey = key.split(".", 1)[1]
@@ -99,22 +132,22 @@ class PropretyUtil(dict):
             d_val = decrypt(value)
             self.__setitem__(dkey, d_val)
 
-    def get_property(self, key, default=None):
+    def get_property(self, key: str, default=None):
         return self.get(key, default)
 
     def __getitem__(self, key, default=None):
         return super(PropretyUtil, self).__getitem__(key) if self.__contains__(key) else default
 
-    def get(self, key, default=None):
+    def get(self, key: str, default=None):
         value = self.get_raw_value(key)
         return self.resolve(value) if value is not None else default
 
-    def get_or_set(self, key, default):
+    def get_or_set(self, key: str, default):
         if key not in self:
             self.set_property(key, default)
         return self.get(key)
 
-    def get_raw_value(self, key, default=None):
+    def get_raw_value(self, key:str, default=None):
         return self.__getitem__(key, default)
 
     def interpolate(self, rest, prefix, suffix, pattern, ext_dict={}):

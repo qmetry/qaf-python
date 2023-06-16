@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from functools import partial
+
 from behave.matchers import Match, get_matcher
 from behave.textutil import text as _text
 
@@ -52,7 +54,7 @@ def setup_step_decorators(run_context=None):
     if run_context is None:
         run_context = globals()
     for step_type in ("given", "when", "then", "and", "step"):
-        run_context[step_type.title()] = run_context[step_type] = QAFTestStep
+        run_context[step_type.title()] = run_context[step_type] = partial(QAFTestStep,keyword=step_type.title())
 
 
 # -----------------------------------------------------------------------------
