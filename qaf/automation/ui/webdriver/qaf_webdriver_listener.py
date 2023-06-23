@@ -35,6 +35,8 @@ class QAFWebDriverListener(DriverListener):
     __logger.addHandler(__streaming_handler)
 
     def on_exception(self, driver, command_tracker: CommandTracker):
+        from qaf import pluginmagager
+        pluginmagager.hook.on_driver_command_failure(driver=driver, command_tracker=command_tracker)
         selenium_log = CommandLogBean()
         selenium_log.commandName = command_tracker.command
         selenium_log.result = command_tracker.message
@@ -45,6 +47,9 @@ class QAFWebDriverListener(DriverListener):
         self.__logger.info(selenium_log.to_string())
 
     def after_command(self, driver, command_tracker: CommandTracker):
+        from qaf import pluginmagager
+        pluginmagager.hook.after_driver_command(driver=driver, command_tracker=command_tracker)
+
         if not is_command_excluded_from_logging(command_tracker.command):
             selenium_log = CommandLogBean()
             selenium_log.commandName = command_tracker.command
@@ -58,6 +63,10 @@ class QAFWebDriverListener(DriverListener):
             self.__logger.info(selenium_log.to_string())
 
     def before_command(self, driver, command_tracker: CommandTracker):
+        from qaf import pluginmagager
+
+        pluginmagager.hook.before_driver_command(driver=driver, command_tracker=command_tracker)
+
         self.__logger.info('Executing ' + command_tracker.command +
                            ' Parameters: ' + str(command_tracker.parameters))
 

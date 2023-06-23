@@ -17,10 +17,54 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
 from typing import (
     Optional,
 )
+
+
+class QAFException(BaseException):
+    """Generic Exception"""
+
+    pass
+
+
+class QuietError(BaseException):
+    # All who inherit this shall not traceback, but be spoken of cleanly
+    pass
+
+
+class ParseError(QAFException, QuietError):
+    "BDD2 parse error"
+    pass
+
+
+class StepNotFound(QAFException, QuietError):
+    "BDD2 Step Not found"
+
+    def __init__(self,step) -> None:
+        """
+        Thrown when validation will fail.
+
+        Note:
+            Do not include the `self` parameter in the ``Args`` section.
+        Args:
+            message (str): Human readable string describing the exception
+        """
+        self.message = f'step not found: {step.name}'
+        super(StepNotFound, self).__init__()
+        self.step=step
+
+    def __repr__(self):
+        return f"Step implementation not found: {self.step.name}\n" \
+               f"called from {self.step.scenario.file}\n"\
+               f"{self.step.keyword} {self.step.name} @{self.step.line_number}\n" \
+               f"{self.step.scenario.name}@{self.step.scenario.line_number}\n" \
+
+
+class DataProviderError(QAFException, QuietError):
+    "Data provider error"
+
+    pass
 
 
 class ValidationError(Exception):

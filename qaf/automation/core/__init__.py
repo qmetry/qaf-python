@@ -18,3 +18,9 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+from qaf.automation.core.configurations_manager import get_bundle, expression
+
+# pylint: disable=undefined-all-variable
+__all__ = [
+    "get_bundle", "expression"
+]

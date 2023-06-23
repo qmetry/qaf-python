@@ -28,6 +28,10 @@ from qaf.automation.core.singleton import Singleton
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
 from qaf.automation.util.property_util import PropretyUtil
 
+__all__ = [
+    "expression", "get_bundle"
+]
+
 
 class ConfigurationsManager(metaclass=Singleton):
     """
@@ -65,7 +69,7 @@ class ConfigurationsManager(metaclass=Singleton):
         Returns:
             None
         """
-        self.__dict.set_property(key,value)
+        self.__dict.set_property(key, value)
 
     def get_object_for_key(self, key: str, default_value: Optional[object] = None) -> object:
         """
@@ -91,7 +95,7 @@ class ConfigurationsManager(metaclass=Singleton):
         Returns:
             Optional(str): Stored value for key
         """
-        #return str(self.__dict[key]) if self.contains_key(key) else default_value
+        # return str(self.__dict[key]) if self.contains_key(key) else default_value
         return self.__dict.get_string(key, default_value)
 
     def get_int_for_key(self, key: str, default_value=None) -> int:
@@ -157,3 +161,14 @@ class ConfigurationsManager(metaclass=Singleton):
     @staticmethod
     def get_bundle():
         return ConfigurationsManager().__dict
+
+    @staticmethod
+    def expression(func):
+        """ mark for function allowed in expression while resolving properties"""
+        ConfigurationsManager.get_bundle().evaluator.functions[func.__name__] = func
+        return func
+
+
+get_bundle = ConfigurationsManager.get_bundle
+expression = ConfigurationsManager.expression
+

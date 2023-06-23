@@ -33,7 +33,12 @@ import csv
 def get_csvdata_as_map(csvfile):
     rows = []
     with open(csvfile, encoding='utf-8') as csvf:
-        return get_list_of_map(csvf)
+        # return get_list_of_map(csvf)
+        #there can be inital commented lines
+        #csv_data = [line.strip('\n') for line in csvf]
+        csv_data = filter(lambda row: row.strip() and row.strip()[0]!='#', csvf)
+        return get_list_of_map(csv_data)
+
 
 def get_list_of_map(csv_data, delimiter=","):
     rows = []

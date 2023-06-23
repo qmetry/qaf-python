@@ -25,6 +25,8 @@ import random
 import re
 import string
 
+from simpleeval import NameNotDefined, EvalWithCompoundTypes
+
 from qaf.automation.util.string_util import to_boolean, decode_base64
 
 
@@ -42,6 +44,7 @@ class PropretyUtil(dict):
 
     def __init__(self, *args, **kw):
         super(PropretyUtil, self).__init__(*args, **kw)
+        self.evaluator = EvalWithCompoundTypes()
 
     def load(self, resources_path: str) -> None:
 
@@ -215,21 +218,11 @@ class PropretyUtil(dict):
         return res_string
 
     def _evalexpr(self, expr, vars):
+        self.evaluator.names = vars if vars else {}
         try:
-            return eval(str(expr), self, vars)
-        except NameError as ne:
-            arg_index = expr.index('(')
-            if not expr.startswith('__import') and arg_index > 0:
-                qualified_name = expr[:arg_index]
-                arg = expr[arg_index:]
-                m_index = qualified_name.rindex('.')
-                class_name = qualified_name[:m_index]
-                method_name = qualified_name[m_index:]
-                m_expr = "__import__('{0}'){1}{2}".format(class_name, method_name, arg)
-                try:
-                    return eval(m_expr, self, vars)
-                except Exception as ex:
-                    raise ne
+            return self.evaluator.eval(expr)
+        except NameNotDefined:
+            return False
 
     def _decrypt_impl(self):
         return self.get("password.decryptor.impl", decode_base64)

@@ -5,9 +5,11 @@ from typing import Union
 
 import pytest
 from _pytest import nodes
+from simpleeval import NameNotDefined, EvalWithCompoundTypes
 
 from qaf.automation.bdd2.bdd2parser import parse
-from qaf.qaf_pytest_plugin import metadata
+from qaf.automation.bdd2.bdd_keywords import STEP_TYPES
+from qaf.pytest import metadata, OPT_METADATA_FILTER, OPT_DRYRUN
 
 """
 @author: Chirag Jayswal
@@ -17,13 +19,15 @@ from qaf.qaf_pytest_plugin import metadata
 # load_step_modules()
 @dataclass
 class Bdd2Step:
-    _name: str
+    name: str
+    scenario: object = None
     line_number: int = 0
     keyword: str = ""
 
-    def __init__(self, name: str, line_number: int = 0) -> None:
+    def __init__(self, name: str, line_number: int = 0, scenario=None) -> None:
         self.name = name
         self.line_number = line_number
+        self.scenario = scenario
 
     @property
     def name(self) -> str:
@@ -32,7 +36,7 @@ class Bdd2Step:
     @name.setter
     def name(self, value):
         match = re.match(
-            "|".join(["Given", "When", "Then", "And"])
+            "|".join(STEP_TYPES)
             , value,
             re.I)
         self.keyword = match.group() if match else ""
@@ -52,10 +56,15 @@ class BDD2Scenario:
     description: list[str] = field(default_factory=list)
     background = None
     is_dryrun_mode: bool = False
+    exception = None
+    file: str = ""
 
     @property
     def has_dataprovider(self):
         return "JSON_DATA_TABLE" in self.metadata or "datafile" in self.metadata
+
+    def add_step(self, name, line_number):
+        self.steps.append(Bdd2Step(name=name, line_number=line_number, scenario=self))
 
     def get_test_func(self):
         from qaf.automation.bdd2.bddstep_executor import execute_step
@@ -63,40 +72,75 @@ class BDD2Scenario:
             @metadata(**self.metadata)
             def test_secario(testdata):
                 for bdd_step in self.steps.copy():
-                    execute_step(bdd_step, testdata, self.is_dryrun_mode)
+                    try:
+                        execute_step(bdd_step, testdata, self.is_dryrun_mode, self.exception is not None)
+                    except BaseException or Exception as e:
+                        self.exception = e
+                if self.exception:
+                    raise self.exception
 
             return test_secario
         else:
             @metadata(**self.metadata)
             def test_secario():
                 for bdd_step in self.steps.copy():
-                    execute_step(bdd_step, {}, self.is_dryrun_mode)
+                    try:
+                        execute_step(bdd_step, {}, self.is_dryrun_mode, self.exception is not None)
+                    except BaseException or Exception as e:
+                        self.exception = e
+                if self.exception:
+                    raise self.exception
 
             return test_secario
+
+
+def update_markers(items: list):
+    for item in items:
+        for marker in item.own_markers:
+            groups = marker.kwargs.pop("groups") if "groups" in marker.kwargs else []
+            for group in groups:
+                item.add_marker(group)
+
+
+def should_include(expr, scenario):
+    if not expr:
+        return True
+    try:
+        evaluator = EvalWithCompoundTypes(names=scenario.metadata)
+        return evaluator.eval(expr)
+    except NameNotDefined:
+        False
 
 
 class BDD2File(pytest.Module):
     def collect(self):
         values: List[Union[nodes.Item, nodes.Collector]] = []
-        self.scenarios = parse(self.path)
+        scenarios = parse(self.path)
 
-        is_dryrun_mode = self.config.getoption("--dryrun")
+        is_dryrun_mode = self.config.getoption(OPT_DRYRUN)
+        meta_filter = self.config.getoption(OPT_METADATA_FILTER, "")
         dict_values: List[List[Union[nodes.Item, nodes.Collector]]] = []
-        ihook = self.ihook
-        for scenario in self.scenarios:
+
+        for scenario in scenarios:
+            # apply filter when collecting
+            if not should_include(meta_filter, scenario):
+                continue
+
             self.obj = scenario
             scenario.is_dryrun_mode = is_dryrun_mode
             fun = scenario.get_test_func()
             setattr(scenario, scenario.name, fun)
 
-            res = ihook.pytest_pycollect_makeitem(
+            res = self.ihook.pytest_pycollect_makeitem(
                 collector=self, name=scenario.name, obj=fun
             )
             if res is None:
                 continue
             elif isinstance(res, list):
+                update_markers(res)
                 values.extend(res)
             else:
+                update_markers([res])
                 values.append(res)
         dict_values.append(values)
         # Between classes in the class hierarchy, reverse-MRO order -- nodes

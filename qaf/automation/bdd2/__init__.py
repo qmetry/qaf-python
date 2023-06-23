@@ -17,3 +17,9 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+from qaf.automation.bdd2.step_registry import *  # pylint: disable=wildcard-import
+__all__ = [
+    "given", "when", "then", "step", "and", "but",
+    "Given", "When", "Then", "Step", "And", "But"
+]
+

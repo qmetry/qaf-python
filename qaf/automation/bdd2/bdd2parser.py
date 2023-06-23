@@ -1,21 +1,9 @@
 import re
-from typing import Match
+from copy import deepcopy
 
+from qaf.automation.bdd2.bdd_keywords import *
+from qaf.automation.core.qaf_exceptions import ParseError
 from qaf.automation.util.csv_util import get_list_of_map
-
-TAG: str = "@"
-COMMENT_CHARS: str = "#!"
-MULTI_LINE_COMMENT: str = "\"\"\""
-MULTI_LINE_COMMENT_END: str = "COMMENT_END"
-STEP_DEF: str = "STEP-DEF"
-END: str = "END"
-TEST_DATA: str = "TEST-DATA"
-SCENARIO: str = "SCENARIO"
-DESCRIPTION: str = "desc"
-SCENARIO_OUTELINE: str = "Scenario Outline"
-EXAMPLES: str = "EXAMPLES"
-FEATURE: str = "Feature"
-BACKGROUND: str = "Background"
 
 """
 @author: Chirag Jayswal
@@ -29,23 +17,22 @@ def _parsTags(line, metadata):
             k, v = tag.split(":", 1)
             metadata.update({k: v})
         elif tag != "":
-            if "groups" in metadata and tag not in metadata["groups"]:
-                metadata["groups"].append(tag)
+            if GROUPS in metadata and tag not in metadata[GROUPS]:
+                metadata[GROUPS].append(tag)
             else:
-                metadata["groups"] = [tag]
+                metadata[GROUPS] = [tag]
 
 
-def parse(content):
-    from qaf.automation.bdd2.bdd2test_factory import BDD2Scenario, Bdd2Step
+def parse(path):
+    from qaf.automation.bdd2.bdd2test_factory import BDD2Scenario
 
-    meta_data = {}
     scenarios = []
-    feature = BDD2Scenario(name="", line_number=0)
-    cur_scenario = feature
+    feature = None
+    cur_scenario = BDD2Scenario(name="", line_number=0)
     data_table = None
     example_table = None
 
-    with open(content) as f:
+    with open(path) as f:
         mylist = [line.strip('\n') for line in f]
 
     for line_number, line in enumerate(mylist, start=1):
@@ -53,29 +40,39 @@ def parse(content):
         if not (stmt == "" or stmt[0] in COMMENT_CHARS):
             type = _getType(stmt)
             if type == "":
-                if stmt[0] == "|":  # data table
-                    # Todo: vaidate entry
-                    datarow = re.sub(r'(\s+)?\|(\s+)?', "|", stmt.strip()[1:-1])
-                    if example_table is not None:
-                        example_table.append(datarow)
-                    elif data_table:
-                        data_table.append(datarow)
-                    else:
-                        data_table = [datarow]
-                else:
+                if _is_step(stmt):
                     if data_table:
                         # append to last step
                         _set_data_table(cur_scenario, None, data_table)
                         data_table = None
-                    cur_scenario.steps.append(Bdd2Step(name=stmt, line_number=line_number))
+                    cur_scenario.add_step(name=stmt, line_number=line_number)
+                elif stmt[0] == "|" == stmt[-1]:
+                    colcnt = len(re.findall(r'(\s+)?\|(\s+)?', stmt))
+                    datarow = re.sub(r'(\s+)?\|(\s+)?', "|", stmt[1:-1])  # to csv
+                    if example_table is not None:
+                        if len(example_table)>0 :
+                            if headercnt != colcnt:
+                                raise ParseError(f"Column count mismatch in data table {path}@{line_number}")
+                        else:
+                            headercnt = colcnt
+                        example_table.append(datarow)
+                    elif data_table:
+                        if headercnt != colcnt:
+                            raise Exception(f"col count mismatch {path}@{line_number}",code=None)
+                        data_table.append(datarow)
+                    else:
+                        headercnt = colcnt
+                        data_table = [datarow]
+                else:
+                    raise ParseError(f'bdd parsing error in {path}@{line_number}')
             elif type == TAG:
                 _set_data_table(cur_scenario, example_table, data_table)
                 data_table = None  # reset
                 example_table = None  # reset
                 # start tarcking tags
-                if cur_scenario.name != "":  # tags can be multiline
+                if cur_scenario is None or cur_scenario.name != "":  # tags can be multiline
                     cur_scenario = BDD2Scenario(name="", line_number=0,
-                                                metadata=feature.metadata.copy())
+                                                metadata=deepcopy(feature.metadata), file=str(path))
                 _parsTags(stmt, cur_scenario.metadata)
             elif FEATURE.lower() == type.lower():
                 cur_scenario.line_number = line_number
@@ -88,7 +85,7 @@ def parse(content):
                 example_table = None  # reset
                 if cur_scenario.name != "":  # no tags create new and set current
                     cur_scenario = BDD2Scenario(name=stmt.split(":", 1)[1].strip(), line_number=line_number,
-                                                metadata=feature.metadata.copy())
+                                                metadata=deepcopy(feature.metadata), file=str(path))
                 else:  # tags collected update name and location
                     cur_scenario.line_number = line_number
                     cur_scenario.name = stmt.split(":", 1)[1].strip()
@@ -104,9 +101,6 @@ def parse(content):
                 example_table = []
 
     _set_data_table(cur_scenario, example_table, data_table)
-    example_table = None
-    data_table = None
-
     return scenarios
 
 
@@ -118,10 +112,6 @@ def _set_data_table(cur_scenario, example_table, data_table):
 
 
 def _to_list(table_data):
-    # data_errors =  list(filter(lambda row: row[1] != "|" or row[-1]!="|" , table_data))
-    # if data_errors:
-    #     raise Exception("Data table must start and end with '|'", data_errors)
-    # data = (data.strip()[1:-1] for data in table_data)
     return get_list_of_map(table_data, '|')
 
 
@@ -129,8 +119,15 @@ def _getType(line):
     if line.endswith(MULTI_LINE_COMMENT):
         return MULTI_LINE_COMMENT_END
 
-    match: Match[bytes] | None | Match[str] = re.match(
+    match = re.match(
         "|".join([TAG, SCENARIO_OUTELINE, SCENARIO, STEP_DEF, EXAMPLES, FEATURE, BACKGROUND, MULTI_LINE_COMMENT])
         , line,
         re.I)
     return match.group() if match else ""
+
+def _is_step(line):
+    match = re.match(
+        "|".join(STEP_TYPES)
+        , line,
+        re.I)
+    return True if match else False

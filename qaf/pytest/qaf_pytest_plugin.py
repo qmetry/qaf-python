@@ -1,4 +1,7 @@
 import json
+import os
+import time
+from time import strftime
 
 import pytest
 import six
@@ -16,15 +19,53 @@ dataprovider = pytest.mark.dataprovider
 metadata = pytest.mark.metaData
 groups = pytest.mark.groups
 
+OPT_DRYRUN = "--dryrun"
+OPT_METADATA_FILTER = "--metadata-filter"
+
 
 def pytest_report_header(config):
+    get_bundle().set_property(ApplicationProperties.TESTING_APPROACH, "pytest")
     return ["Using Qmetry Automation Framework ...", "for web mobile and webservices test automation."]
 
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--dryrun", action="store_true", default=False, help="dry run bdd scenarios"
+        OPT_DRYRUN, action="store_true", default=False, help="dry run bdd scenarios"
     )
+    parser.getgroup("general").addoption(
+        OPT_METADATA_FILTER, action="store", default="", help="qaf metadata filter"
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "metadata(group1, group2, key1=val1): tests case metadata.  see "
+                                       "https://qmetry.github.io/qaf/latest/scenario-meta-data.html")
+    config.addinivalue_line(
+        "markers", "dataprovider(datafile:str, "
+                   "filter=None, "
+                   "from=None, to=None, "
+                   "indices:[])"
+                   ": external data provider. see https://qmetry.github.io/qaf/latest/maketest_data_driven.html"
+    )
+    OUTPUT_TEST_RESULTS_DIR = get_bundle().get_or_set('test.results.dir',
+                                                      os.environ.get('test.results.dir', "test-results"))
+    REPORT_DIR = get_bundle().get_or_set('json.report.root.dir',
+                                         os.environ.get('json.report.root.dir',
+                                                        os.path.join(OUTPUT_TEST_RESULTS_DIR,
+                                                                     strftime('%d-%m-%Y_%H_%M_%S',
+                                                                              time.localtime()))))
+    JSON_REPORT_DIR = get_bundle().get_or_set('json.report.dir',
+                                              os.environ.get('json.report.dir',
+                                                             os.path.join(REPORT_DIR, 'json')))
+    os.environ["test.results.dir"] = OUTPUT_TEST_RESULTS_DIR
+    os.environ["json.report.root.dir"] = REPORT_DIR
+    os.environ["json.report.dir"] = JSON_REPORT_DIR
+    os.makedirs(JSON_REPORT_DIR, exist_ok=True)
+    # pytest report file
+    report = f"{REPORT_DIR}/pytest-report.html"
+    # adjust plugin options
+    config.option.htmlpath = report
+    config.option.self_contained_html = True
 
 
 def pytest_generate_tests(metafunc):
@@ -49,16 +90,20 @@ def pytest_generate_tests(metafunc):
 
 def pytest_collection_modifyitems(session, config, items):
     print("pytest_collection_modifyitems")
-    for item in items:
-        for _metadata in [m for m in item.own_markers if m.name.lower() == "metadata"]:
-            if "groups" in _metadata.kwargs:
-                for group in _metadata.kwargs["groups"]:
-                    item.add_marker(group)
+    groups_cache = []
+    # for item in items:
+    #     for _metadata in [m for m in item.own_markers if m.name.lower() == "metadata"]:
+    #         if "groups" in _metadata.kwargs:
+    #             for group in _metadata.kwargs["groups"]:
+    #                 if group not in groups_cache:
+    #                     groups_cache.append(group)
+    #                     config.addinivalue_line("markers", f'group {group}')
+    #                     #setattr(pytest.mark,group)
+    #                 item.add_marker(f'{group}')
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    get_bundle().set_property(ApplicationProperties.TESTING_APPROACH, "pytest")
     outcome = yield
     report = outcome.get_result()
     # status = report.outcome

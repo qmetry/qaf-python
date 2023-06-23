@@ -67,7 +67,7 @@ def get_driver(name=None):
         get_bundle().set_property(qafKeys.DRIVER_NAME, driver_name)
         # set driver/browser specific resources
         browser = re.sub(r'(?i)remote|driver', '', driver_name)
-        driver_resources: str | None = get_bundle().get_string(qafKeys.DRIVER_RESOURCES_FORMAT.format(browser))
+        driver_resources: str = get_bundle().get_string(qafKeys.DRIVER_RESOURCES_FORMAT.format(browser))
         if driver_resources is not None:
             get_bundle().load(driver_resources)
     return driver_ctx[driver_name]
@@ -95,15 +95,16 @@ def _get_driver_ctx():
     return context().get(QAF_DRIVER_CONTEXT_KEY)
 
 
-def context():
-    ctx = ConfigurationsManager.get_bundle().get(QAF_CONTEXT_KEY, None)
-    if ctx is None:
-        ctx = dict()
-        ctx[QAF_DRIVER_CONTEXT_KEY] = {}
-        ctx[QAF_COMMAND_LOG_KEY] = []
-        ctx[QAF_CHECKPOINTS_KEY] = []
-        ctx[QAF_VERIFICATION_ERRORS_KEY] = 0
-        ConfigurationsManager.get_bundle().set_property(QAF_CONTEXT_KEY, ctx)
+def context() -> dict:
+    return get_bundle().get_or_set(QAF_CONTEXT_KEY, _empty_context())
+
+
+def _empty_context():
+    ctx = dict()
+    ctx[QAF_DRIVER_CONTEXT_KEY] = {}
+    ctx[QAF_COMMAND_LOG_KEY] = []
+    ctx[QAF_CHECKPOINTS_KEY] = []
+    ctx[QAF_VERIFICATION_ERRORS_KEY] = 0
     return ctx
 
 
@@ -173,7 +174,7 @@ def _get_cur_step():
     if "_current_step" in context():
         return context()["_current_step"]
     else:
-        return _StepLogger("","", None)
+        return _StepLogger("", "", None)
 
 
 def _set_cur_step(step):
@@ -198,7 +199,7 @@ def shut_down():
     prepareForShutdown = True
     print("Preparing For Shut Down...")
     tear_down()
-    #ResultUpdator.awaitTermination()
+    # ResultUpdator.awaitTermination()
 
 
 atexit.register(shut_down)
@@ -251,4 +252,3 @@ class _StepLogger(object):
 
         if result is not None:
             self.command_log.result = result
-

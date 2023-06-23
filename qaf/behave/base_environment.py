@@ -18,6 +18,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+import os
 import re
 
 import six
@@ -36,7 +37,16 @@ from qaf.automation.util.datetime_util import current_timestamp
 class BaseEnvironment:
 
     def before_all(self, context):
-        pass
+        from behave.runner_util import load_step_modules
+        import qaf.automation.step_def as step_def_path
+        step_def_path = str(os.path.abspath(step_def_path.__file__)).replace('/__init__.py', '')
+
+        QAF_STEPS = [step_def_path]
+        load_step_modules(QAF_STEPS)
+        step_provider_pkgs = get_bundle().get_string(ApplicationProperties.STEP_PROVIDER_PKG)
+        if step_provider_pkgs:
+            step_provider_pkg_list = step_provider_pkgs.replace('.', '/').split(";")
+            load_step_modules(step_provider_pkg_list)
 
     def after_all(self, context):
         tear_down()

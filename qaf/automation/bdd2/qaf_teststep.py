@@ -5,61 +5,69 @@ from typing import Any
 from qaf.automation.core.test_base import start_step, end_step
 from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
 from qaf.automation.report.utils import step_status
+from qaf.listeners import pluginmagager
 
 
 @dataclass
-class StepRunContext:
+class StepTracker:
     args: list[Any]
     kwargs: dict
-
-    def __init__(self, display_name="", dryrun=False):
-        self.display_name = display_name
-        self.status = PyTestStatus.undefined
-        self.result = None
-        self.exception = None
-        self.dryrun = dryrun
+    name: str
+    display_name: str = ""
+    dryrun: bool = False
+    result: Any = None
+    exception = None
+    status = PyTestStatus.undefined
+    retry: bool = False
+    invocation_count: int = 0
 
 
 class QAFTestStep:
 
-    def __init__(self, description="", func: callable = None, keyword:str = "Step"):
+    def __init__(self, description="", func: callable = None, keyword: str = "Step"):
         if func:
             self.func = func
             self.name = func.__name__
             self.description = description or self.name
         else:
             self.description = description
-            self.name = self.description # inline step
+            self.name = self.description  # inline step
         self.keyword = keyword
 
-    def __enter__(self):# inline step with Given/When/Then/Step/And(step description):
-        #plugin_manager.hook.start_step(uuid=self.uuid, name=self.name, description=self.description)
+    def __enter__(self):  # inline step with Given/When/Then/Step/And(step description):
+        # plugin_manager.hook.start_step(uuid=self.uuid, name=self.name, description=self.description)
         start_step(self.name, f'{self.keyword} {self.description}')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        #plugin_manager.hook.stop_step(uuid=self.uuid, name=self.name, exc_type=exc_type, exc_val=exc_val,
+        # plugin_manager.hook.stop_step(uuid=self.uuid, name=self.name, exc_type=exc_type, exc_val=exc_val,
         #                              exc_tb=exc_tb)
         end_step(True if exc_type is None else False, None)
 
     def execute(self, *args, **kwargs):
-        step_run_context = StepRunContext()
-        return self.executeWithContext(step_run_context, *args, **kwargs)
+        step_run_context = StepTracker(name=self.name, args=args, kwargs=kwargs)
+        return self.executeWithContext(step_run_context)
 
-    def executeWithContext(self, step_run_context: StepRunContext, *args, **kwargs):
+    def executeWithContext(self, step_run_context: StepTracker):
         step_run_context.step = self
-        self.before_step(step_run_context, *args, **kwargs)
-        try:
-            if not step_run_context.dryrun:
-                res = self.func(*args, **kwargs)
-                step_run_context.result = res
-            step_run_context.status = PyTestStatus.passed
-            self.after_step(step_run_context)
-            return step_run_context.result
-        except Exception as e:
-            step_run_context.exception = e
-            step_run_context.status = PyTestStatus.failed
-            self.after_step( step_run_context)
-            raise e
+        while step_run_context.invocation_count == 0 or step_run_context.retry:
+            step_run_context.invocation_count += 1
+            self.before_step(step_run_context)
+            step_run_context.status = PyTestStatus.executing
+            step_run_context.retry = False # reset
+            try:
+                if not step_run_context.dryrun:
+                    res = self.func(*step_run_context.args, **step_run_context.kwargs)
+                    step_run_context.result = res
+                step_run_context.status = PyTestStatus.passed
+                self.after_step(step_run_context)
+                return step_run_context.result
+            except Exception as e:
+                step_run_context.exception = e
+                step_run_context.status = PyTestStatus.failed
+                self.after_step(step_run_context)
+
+        if step_run_context.exception:
+            raise step_run_context.exception
 
     def __call__(self, *args, **kwargs):
         if args and callable(args[0]):
@@ -75,29 +83,30 @@ class QAFTestStep:
         self.description = self.description or self.name
         step_registry.register_step(self)
 
-    def after_step(self, step_run_context: StepRunContext):
-        status_text = step_status(step_run_context)
-        b_status = bool(re.search('(?i)pass', status_text)) if bool(re.search('(?i)fail|pass', status_text)) else None
-        end_step(b_status, step_run_context.result)
+    def after_step(self, step_tracker: StepTracker):
+        pluginmagager.hook.after_step(step_tracker=step_tracker)
+        if not step_tracker.retry:
+            status_text = step_status(step_tracker)
+            b_status = bool(re.search('(?i)pass', status_text)) if bool(re.search('(?i)fail|pass', status_text)) else None
+            end_step(b_status, step_tracker.result)
 
-    def before_step(self, step_run_context: StepRunContext, *args, **kwargs):
-        if not step_run_context.display_name:
+    def before_step(self, step_tracker: StepTracker):
+        pluginmagager.hook.before_step(step_tracker=step_tracker)
+        if not step_tracker.display_name:
             try:
-                if args or kwargs:
+                if step_tracker.args or step_tracker.kwargs:
                     # step_run_context.step.args = [*args, ]
-                    step_run_context.display_name = self._formate_name(args, kwargs)
-                    step_run_context.args = args
-                    step_run_context.kwargs = kwargs
+                    step_tracker.display_name = self._formate_name(step_tracker.args, step_tracker.kwargs)
                 else:
-                    step_run_context.display_name = self.name
+                    step_tracker.display_name = self.name
             except Exception as e:
-                step_run_context.display_name = self.name
-        args_array = [*args]
-        if kwargs:
-            for key, value in kwargs.items():
+                step_tracker.display_name = self.name
+        args_array = [step_tracker.args]
+        if step_tracker.kwargs:
+            for key, value in step_tracker.kwargs.items():
                 args_array.append(str(key) + ':' + str(value))
-        start_step(self.name, step_run_context.display_name, args_array)
-        step_run_context.status = PyTestStatus.executing
+        if step_tracker.invocation_count == 1:
+            start_step(self.name, step_tracker.display_name, args_array)
 
     def _formate_name(self, *args, **kwargs):
         name = self.description or self.name

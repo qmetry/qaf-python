@@ -707,18 +707,25 @@ class QAFWebElement(RemoteWebElement):
             Reporter.log_with_screenshot(message, MessageType.Fail)
 
     def before_command(self, command_tracker: CommandTracker) -> None:
+        from qaf import pluginmagager
         command_tracker.stage = Stage.executing_before_method
-        if self._listeners is not None:
-            for listener in self._listeners:
-                listener.before_command(self, command_tracker)
+        pluginmagager.hook.before_element_command(element=self,command_tracker=command_tracker)
+        # if self._listeners is not None:
+        #     for listener in self._listeners:
+        #         listener.before_command(self, command_tracker)
 
     def after_command(self, command_tracker: CommandTracker) -> None:
+        from qaf import pluginmagager
         command_tracker.stage = Stage.executing_after_method
-        if self._listeners is not None:
-            for listener in self._listeners:
-                listener.after_command(self, command_tracker)
+        pluginmagager.hook.after_element_command(element=self,command_tracker=command_tracker)
+
+        # if self._listeners is not None:
+        #     for listener in self._listeners:
+        #         listener.after_command(self, command_tracker)
 
     def on_exception(self, command_tracker: CommandTracker) -> None:
+        from qaf import pluginmagager
+
         command_tracker.stage = Stage.executing_on_failure
 
         if isinstance(command_tracker.get_exception_type(), StaleElementReferenceException):
@@ -729,10 +736,13 @@ class QAFWebElement(RemoteWebElement):
             command_tracker.stage = Stage.executing_method
             self._execute(command_tracker.command, parameters)
 
-        if self._listeners is not None:
-            if command_tracker.has_exception():
-                for listener in self._listeners:
-                    listener.on_exception(self, command_tracker)
+        pluginmagager.hook.on_element_command_failure(element=self,command_tracker=command_tracker)
+
+
+        # if self._listeners is not None:
+        #     if command_tracker.has_exception():
+        #         for listener in self._listeners:
+        #             listener.on_exception(self, command_tracker)
 
 
 def qaf_web_element_wait(ele: QAFWebElement, timeout, ignored_exceptions=None) -> \
