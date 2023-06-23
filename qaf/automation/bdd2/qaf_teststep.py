@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from qaf.automation.core.test_base import start_step, end_step
-from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
 from qaf.automation.report.utils import step_status
 from qaf.listeners import pluginmagager
+from qaf.pytest.pytest_utils import PyTestStatus
 
 
 @dataclass

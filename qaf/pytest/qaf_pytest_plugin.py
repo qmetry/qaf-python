@@ -8,11 +8,11 @@ import six
 
 from qaf.automation.core.test_base import is_verification_failed, get_bundle, \
     get_checkpoint_results, get_command_logs, clear_assertions_log, tear_down, get_verification_errors
-from qaf.automation.formatter.py_test_report.pytest_utils import PyTestStatus
 from qaf.automation.integration.result_updator import update_result
 from qaf.automation.integration.testcase_run_result import TestCaseRunResult
 from qaf.automation.keys.application_properties import ApplicationProperties
 from qaf.automation.util.dataprovider_util import get_testdata
+from qaf.pytest.pytest_utils import PyTestStatus
 
 get_bundle().set_property(ApplicationProperties.TESTING_APPROACH, "pytest")
 dataprovider = pytest.mark.dataprovider
