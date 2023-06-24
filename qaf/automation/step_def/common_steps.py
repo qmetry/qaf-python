@@ -20,25 +20,19 @@
 
 from selenium.webdriver import ActionChains
 
+from qaf.automation.bdd2.step_registry import step
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
-from qaf.automation.core.qaf_exceptions import KeyNotFoundError
 from qaf.automation.core.reporter import Reporter
 from qaf.automation.core.test_base import get_driver
-from qaf.automation.keys.application_properties import ApplicationProperties as AP
 from qaf.automation.ui.webdriver.qaf_web_element import QAFWebElement
 
-if not CM().contains_key(key=AP.TESTING_APPROACH):
-    raise KeyNotFoundError(message=AP.TESTING_APPROACH + ' e.g. behave, pytest')
 
-if CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'pytest':
-    from qaf.automation.bdd2.step_registry import step
-elif CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'behave':
-    from behave import step
-else:
-    raise NotImplemented
-
-
-#use_step_matcher("re")
+# if CM().get_str_for_key(key=AP.TESTING_APPROACH, default_value='pytest').lower() == 'pytest':
+#     from qaf.automation.bdd2.step_registry import step
+# elif CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'behave':
+#     from behave import step
+# else:
+#     raise NotImplemented
 
 
 @step(u"COMMENT: '{value}'")

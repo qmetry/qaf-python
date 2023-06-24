@@ -22,4 +22,3 @@ __all__ = [
     "given", "when", "then", "step", "and", "but",
     "Given", "When", "Then", "Step", "And", "But"
 ]
-

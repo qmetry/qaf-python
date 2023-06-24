@@ -7,7 +7,7 @@ import pytest
 import six
 
 from qaf.automation.core.test_base import is_verification_failed, get_bundle, \
-    get_checkpoint_results, get_command_logs, clear_assertions_log, tear_down, get_verification_errors
+    get_checkpoint_results, get_command_logs, clear_assertions_log, tear_down, get_verification_errors, set_test_context
 from qaf.automation.integration.result_updator import update_result
 from qaf.automation.integration.testcase_run_result import TestCaseRunResult
 from qaf.automation.keys.application_properties import ApplicationProperties
@@ -122,6 +122,7 @@ def pytest_runtest_makereport(item, call):
 @pytest.fixture(autouse=True)
 def test_fixture(request):
     clear_assertions_log()
+    set_test_context(request)
     get_bundle().set_property(ApplicationProperties.CURRENT_TEST_NAME, request.node.name)
     get_bundle().set_property(ApplicationProperties.CURRENT_TEST_RESULT, request.node)
     yield

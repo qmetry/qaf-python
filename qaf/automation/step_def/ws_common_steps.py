@@ -23,22 +23,11 @@ from http.client import responses
 import jmespath
 from hamcrest import *
 
+from qaf.automation.bdd2.step_registry import step
 from qaf.automation.core.configurations_manager import ConfigurationsManager as CM
-from qaf.automation.core.qaf_exceptions import KeyNotFoundError
-from qaf.automation.keys.application_properties import ApplicationProperties as AP
 from qaf.automation.util.validator import Validator
 from qaf.automation.ws.rest.ws_request import WsRequest
 from qaf.automation.ws.ws_request_bean import WsRequestBean
-
-if not CM().contains_key(key=AP.TESTING_APPROACH):
-    raise KeyNotFoundError(message=AP.TESTING_APPROACH + ' e.g. behave, pytest')
-
-if CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'pytest':
-    from qaf.automation.bdd2.step_registry import step
-elif CM().get_str_for_key(key=AP.TESTING_APPROACH).lower() == 'behave':
-    from behave import step
-else:
-    raise NotImplemented
 
 
 @step(u"user requests '{api_key}' with data '{data}'")

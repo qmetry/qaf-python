@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import inspect
 import os
 from functools import partial
 
@@ -12,6 +13,12 @@ __all__ = [
     "Given", "When", "Then", "Step", "And", "But"
 ]
 
+from qaf.automation.core import get_bundle
+from qaf.automation.keys.application_properties import ApplicationProperties
+
+from qaf.automation.bdd2.bdd_keywords import STEP_TYPES
+
+
 class StepRegistry:
     def __init__(self):
         self.registry = []
@@ -20,16 +27,25 @@ class StepRegistry:
         pass
 
     def register_step(self, step):
-        step_location = Match.make_location(step.func)
-        step_text = _text(step.description)
-        for existing in self.registry:
-            if self.same_step_definition(existing.matcher, step_text, step_location):
-                # -- EXACT-STEP: Same step function is already registered.
-                # This may occur when a step module imports another one.
-                return
-        # matcher = get_matcher(step, step_text)
-        step.matcher = get_matcher(step.func, step_text)
-        self.registry.append(step)
+        if get_bundle().get_string(ApplicationProperties.TESTING_APPROACH).lower() == "behave":
+            #from behave.step_registry import registry
+            from behave import step as behave_step
+            argSpec = inspect.getfullargspec(step.func)
+            if 'context' not in argSpec.args:
+                step.func = void_context(step.func)
+            #registry.add_step_definition("step", step.description, step.func)
+            behave_step(step.description)(step.func)
+        else:
+            step_location = Match.make_location(step.func)
+            step_text = _text(step.description)
+            for existing in self.registry:
+                if self.same_step_definition(existing.matcher, step_text, step_location):
+                    # -- EXACT-STEP: Same step function is already registered.
+                    # This may occur when a step module imports another one.
+                    return
+            # matcher = get_matcher(step, step_text)
+            step.matcher = get_matcher(step.func, step_text)
+            self.registry.append(step)
 
     def lookup(self, step):
         step_name = step if type(step) is str else step.name
@@ -44,6 +60,13 @@ class StepRegistry:
         return (matcher.pattern == other_pattern and
                 matcher.location == other_location and
                 other_location.filename != "<string>")
+
+
+def void_context(step):
+    def wrapped_step(context, *args, **kwargs):
+        step(*args, **kwargs)
+
+    return wrapped_step
 
 
 step_registry = StepRegistry()
@@ -82,7 +105,7 @@ def setup_step_decorators(run_context=None):
     from qaf.automation.bdd2.qaf_teststep import QAFTestStep
     if run_context is None:
         run_context = globals()
-    for step_type in ("given", "when", "then", "and", "step", "but"):
+    for step_type in STEP_TYPES:
         run_context[step_type.title()] = run_context[step_type] = partial(QAFTestStep, keyword=step_type.title())
 
 
@@ -106,4 +129,3 @@ def register_steps():
 # -----------------------------------------------------------------------------
 setup_step_decorators()
 register_steps()
-

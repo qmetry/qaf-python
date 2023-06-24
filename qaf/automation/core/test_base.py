@@ -42,6 +42,7 @@ QAF_COMMAND_LOG_KEY = "commandLog"
 QAF_CHECKPOINTS_KEY = "checkPointResults"
 QAF_CONTEXT_KEY = "__qaftestbase_ctx"
 QAF_DRIVER_CONTEXT_KEY = "__driver_ctx"
+QAF_TEST_CONTEXT_KEY = "test_context"
 
 QAF_VERIFICATION_ERRORS_KEY = "verificationErrors"
 OUTPUT_TEST_RESULTS_DIR = get_bundle().get_or_set('test.results.dir',
@@ -105,6 +106,7 @@ def _empty_context():
     ctx[QAF_COMMAND_LOG_KEY] = []
     ctx[QAF_CHECKPOINTS_KEY] = []
     ctx[QAF_VERIFICATION_ERRORS_KEY] = 0
+    ctx[QAF_TEST_CONTEXT_KEY] = None
     return ctx
 
 
@@ -112,6 +114,7 @@ def clear_assertions_log():
     get_checkpoint_results().clear()
     clear_verification_errors()
     get_command_logs().clear()
+    context()[QAF_TEST_CONTEXT_KEY] = None
     if "_current_step" in context():
         context().pop("_current_step")
     if "last_captured_screenshot" in context():
@@ -130,6 +133,14 @@ def get_command_logs():
     return context()[QAF_COMMAND_LOG_KEY]
 
 
+def get_test_context():
+    return context()[QAF_TEST_CONTEXT_KEY]
+
+
+def set_test_context(test_context):
+    context()[QAF_TEST_CONTEXT_KEY] = test_context
+
+
 def get_verification_errors() -> int:
     return int(context()[QAF_VERIFICATION_ERRORS_KEY])
 
@@ -141,6 +152,7 @@ def is_verification_failed() -> bool:
 def start_step(step_name, display_name, args=[]):
     current_step = _get_cur_step()
     step = _StepLogger(step_name, display_name, current_step, args)
+    return get_test_context()
 
 
 def end_step(status: bool, result=None):

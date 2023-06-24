@@ -39,7 +39,7 @@ setup(name='qaf-python',
       long_description=readme,
       long_description_content_type="text/markdown",
       maintainer_email='nishith.shah@infostretch.com',
-      entry_points={"pytest11": ["qaf = qaf.automation.pytest.qaf_pytest_plugin"]},
+      entry_points={"pytest11": ["qaf = qaf.pytest.qaf_pytest_plugin"]},
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',

@@ -18,9 +18,10 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-from enum import Enum
-import six
 import inspect
+from enum import Enum
+
+import six
 
 
 def del_all_attr(obj):

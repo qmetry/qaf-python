@@ -37,6 +37,8 @@ from qaf.automation.util.datetime_util import current_timestamp
 class BaseEnvironment:
 
     def before_all(self, context):
+        get_bundle().set_property(ApplicationProperties.TESTING_APPROACH, "behave")
+
         from behave.runner_util import load_step_modules
         import qaf.automation.step_def as step_def_path
         step_def_path = str(os.path.abspath(step_def_path.__file__)).replace('/__init__.py', '')

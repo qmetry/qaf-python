@@ -1,8 +1,9 @@
+import inspect
 import re
 from dataclasses import dataclass
 from typing import Any
 
-from qaf.automation.core.test_base import start_step, end_step
+from qaf.automation.core.test_base import start_step, end_step, get_test_context
 from qaf.automation.report.utils import step_status
 from qaf.listeners import pluginmagager
 from qaf.pytest.pytest_utils import PyTestStatus
@@ -20,6 +21,7 @@ class StepTracker:
     status = PyTestStatus.undefined
     retry: bool = False
     invocation_count: int = 0
+    context: Any = None
 
 
 class QAFTestStep:
@@ -91,6 +93,7 @@ class QAFTestStep:
             end_step(b_status, step_tracker.result)
 
     def before_step(self, step_tracker: StepTracker):
+        step_tracker.context = get_test_context()
         pluginmagager.hook.before_step(step_tracker=step_tracker)
         if not step_tracker.display_name:
             try:
@@ -101,18 +104,33 @@ class QAFTestStep:
                     step_tracker.display_name = self.name
             except Exception as e:
                 step_tracker.display_name = self.name
-        args_array = [step_tracker.args]
-        if step_tracker.kwargs:
-            for key, value in step_tracker.kwargs.items():
-                args_array.append(str(key) + ':' + str(value))
+
         if step_tracker.invocation_count == 1:
+            args_array = [step_tracker.args]
+            if step_tracker.kwargs:
+                for key, value in step_tracker.kwargs.items():
+                    args_array.append(str(key) + ':' + str(value))
             start_step(self.name, step_tracker.display_name, args_array)
+            self._prepare_args(step_tracker)
+
 
     def _formate_name(self, *args, **kwargs):
         name = self.description or self.name
         if args:
-            name = re.sub(self.pattern, lambda match: str(args.pop(0)), name)
+            name = re.sub("", lambda match: str(args.pop(0)), self.matcher.regex_pattern)
         if kwargs:
             name = self.description.format(kwargs)
             name = re.sub(self.pattern, lambda match: str(kwargs[match.group()]), name)
         return self.keyword + ' ' + name
+
+    def _prepare_args(self, step_tracker:StepTracker):
+        argSpec = inspect.getfullargspec(self.func)
+        step_tracker.actual_args = list(step_tracker.args)
+        if step_tracker.args and len(step_tracker.args) != len(argSpec.args):
+            if "context" in argSpec.args and not(step_tracker.kwargs and "context" in  step_tracker.kwargs):
+                step_tracker.args = [step_tracker.context]
+                step_tracker.args.extend(step_tracker.actual_args)
+        elif "context" in argSpec.args and not(step_tracker.kwargs and "context" in  step_tracker.kwargs):
+            step_tracker.kwargs["context"] = step_tracker.context
+
+
