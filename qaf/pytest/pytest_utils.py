@@ -50,3 +50,24 @@ class PyTestStatus(Enum):
             known_names = ", ".join(cls.__members__.keys())
             raise LookupError("%s (expected: %s)" % (name, known_names))
         return enum_value
+
+
+def get_metadata(markers):
+    metadata = {"groups": []}
+    for marker in markers:
+        if marker.name.lower() == "dataprovider":
+            metadata.update(get_dp(marker))
+        elif marker.args or marker.kwargs:
+            metadata.update(marker.kwargs)
+            if marker.args:
+                if marker.name.lower() == "groups":
+                    metadata["groups"] += list(marker.args)
+                else:
+                    metadata[marker.name]: marker.args
+        else:
+            metadata["groups"].append(marker.name)
+    return metadata
+
+
+def get_dp(marker):
+    return {"_dataFile": marker.args[0]} | marker.kwargs if marker.args else marker.kwargs

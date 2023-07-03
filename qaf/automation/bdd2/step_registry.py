@@ -28,23 +28,24 @@ class StepRegistry:
 
     def register_step(self, step):
         if get_bundle().get_string(ApplicationProperties.TESTING_APPROACH).lower() == "behave":
-            #from behave.step_registry import registry
+            # from behave.step_registry import registry
             from behave import step as behave_step
             argSpec = inspect.getfullargspec(step.func)
             if 'context' not in argSpec.args:
                 step.func = void_context(step.func)
-            #registry.add_step_definition("step", step.description, step.func)
+            # registry.add_step_definition("step", step.description, step.func)
             behave_step(step.description)(step.func)
         else:
             step_location = Match.make_location(step.func)
             step_text = _text(step.description)
+            # set matcher even regardless of existing or new for direct method call or when not using bdd
+            step.matcher = get_matcher(step.func, step_text)
             for existing in self.registry:
                 if self.same_step_definition(existing.matcher, step_text, step_location):
                     # -- EXACT-STEP: Same step function is already registered.
                     # This may occur when a step module imports another one.
                     return
             # matcher = get_matcher(step, step_text)
-            step.matcher = get_matcher(step.func, step_text)
             self.registry.append(step)
 
     def lookup(self, step):

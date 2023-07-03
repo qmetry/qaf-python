@@ -25,9 +25,9 @@ import uuid
 from builtins import dict
 from time import strftime
 
+from qaf.automation.core import get_bundle
 from qaf.automation.core.checkpoint_bean import CheckPointBean
 from qaf.automation.core.command_log_bean import CommandLogBean
-from qaf.automation.core.configurations_manager import ConfigurationsManager
 from qaf.automation.core.message_type import MessageType
 from qaf.automation.keys.application_properties import ApplicationProperties as qafKeys
 from qaf.automation.ui.webdriver.driver_factory import create_driver
@@ -35,7 +35,6 @@ from qaf.automation.ui.webdriver.driver_factory import create_driver
 """
     @author: Chirag Jayswal
 """
-get_bundle = ConfigurationsManager.get_bundle
 prepareForShutdown = False
 
 QAF_COMMAND_LOG_KEY = "commandLog"
@@ -164,7 +163,8 @@ def end_step(status: bool, result=None):
         current_step.checkpoint.screenshot = last_captured_screenshot
     elif not (success or status):
         take_screenshot()
-        current_step.checkpoint.screenshot = context().pop("last_captured_screenshot")
+        if "last_captured_screenshot" in context():
+            current_step.checkpoint.screenshot = context().pop("last_captured_screenshot")
     _set_cur_step(current_step.get_parent())
     # del current_step
 

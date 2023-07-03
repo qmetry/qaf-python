@@ -13,9 +13,9 @@ from qaf.automation.core.reporter import Reporter
 pkg_loaded = False
 
 
-def execute_step(bdd_step_call, testdata={}, is_dryrun_mode: bool = False, should_skip = False):
-    from qaf.automation.bdd2.bdd2test_factory import Bdd2Step
-    bdd_step = Bdd2Step(bdd_step_call) if  type(bdd_step_call) is str else bdd_step_call
+def execute_step(bdd_step_call, testdata={}, is_dryrun_mode: bool = False, should_skip=False):
+    from qaf.automation.bdd2.model import Bdd2Step
+    bdd_step = Bdd2Step(bdd_step_call) if type(bdd_step_call) is str else bdd_step_call
     found, step, args_dict = _find_match(bdd_step.name, testdata)
     if not found:
         Reporter.error(f'{bdd_step.keyword} {bdd_step.name} :Step Not Found'.lstrip())
@@ -24,12 +24,14 @@ def execute_step(bdd_step_call, testdata={}, is_dryrun_mode: bool = False, shoul
     elif should_skip:
         Reporter.log(f'{bdd_step.keyword} {bdd_step.name}'.lstrip(), MessageType.TestStep)
     else:
-        context = StepTracker(name= bdd_step.name, display_name=f'{bdd_step.keyword} {bdd_step.name}'.lstrip(),
-                              dryrun=is_dryrun_mode, args=[], kwargs=args_dict)
+        execution_tracker = StepTracker(name=bdd_step.name, display_name=f'{bdd_step.keyword} {bdd_step.name}'.lstrip(),
+                                        dryrun=is_dryrun_mode, args=[], kwargs=args_dict)
+        execution_tracker.call = bdd_step
+        bdd_step.stepTracker = execution_tracker
         # if args_dict:
         #     step.executeWithContext(context, **args_dict)
         # else:
-        step.executeWithContext(context)
+        step.executeWithContext(execution_tracker)
 
 
 def _gen_code_snnipet(bdd_step):

@@ -94,8 +94,9 @@ class BDD2Scenario:
             return test_secario
 
 
-def update_markers(items: list):
+def update_item(items: list, scenario):
     for item in items:
+        item.scenario = scenario
         for marker in item.own_markers:
             groups = marker.kwargs.pop("groups") if "groups" in marker.kwargs else []
             for group in groups:
@@ -114,22 +115,24 @@ def should_include(expr, scenario):
 
 class BDD2File(pytest.Module):
     def collect(self):
+        #self.add_marker("metadata")
         values: List[Union[nodes.Item, nodes.Collector]] = []
         scenarios = parse(self.path)
 
         is_dryrun_mode = self.config.getoption(OPT_DRYRUN)
         meta_filter = self.config.getoption(OPT_METADATA_FILTER, "")
         dict_values: List[List[Union[nodes.Item, nodes.Collector]]] = []
-
+        self.obj = self
         for scenario in scenarios:
             # apply filter when collecting
             if not should_include(meta_filter, scenario):
                 continue
 
-            self.obj = scenario
+            #self.obj = scenario
             scenario.is_dryrun_mode = is_dryrun_mode
             fun = scenario.get_test_func()
-            setattr(scenario, scenario.name, fun)
+            #setattr(scenario, scenario.name, fun)
+            setattr(self, scenario.name, fun)
 
             res = self.ihook.pytest_pycollect_makeitem(
                 collector=self, name=scenario.name, obj=fun
@@ -137,10 +140,10 @@ class BDD2File(pytest.Module):
             if res is None:
                 continue
             elif isinstance(res, list):
-                update_markers(res)
+                update_item(res,scenario)
                 values.extend(res)
             else:
-                update_markers([res])
+                update_item([res],scenario)
                 values.append(res)
         dict_values.append(values)
         # Between classes in the class hierarchy, reverse-MRO order -- nodes
