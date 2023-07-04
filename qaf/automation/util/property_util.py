@@ -44,10 +44,15 @@ class PropretyUtil(dict):
 
     def __init__(self, *args, **kw):
         super(PropretyUtil, self).__init__(*args, **kw)
+        self.loading_resources = False
+        self.resource_path = ""
         self.evaluator = EvalWithCompoundTypes()
 
     def load(self, resources_path: str) -> None:
 
+        if self.resource_path == resources_path: return
+        self.loading_resources = True
+        self.resource_path = resources_path
         all_resources_path = resources_path.split(";") if resources_path else []
         for each_resource_path in all_resources_path:
             if os.path.isdir(each_resource_path):
@@ -59,6 +64,10 @@ class PropretyUtil(dict):
             elif os.path.isfile(each_resource_path):
                 # self.__load_files(each_resource_path)
                 self.__load_file(each_resource_path)
+        self.loading_resources = False # mark done
+        if self.resource_path != self.get_string("env.resources", self.resource_path):
+            self.load(self.get_string("env.resources", self.resource_path))
+
 
     def __load_file(self, file):
         extension = os.path.splitext(file)[1]
@@ -128,12 +137,19 @@ class PropretyUtil(dict):
         return int(val) if val is not None else None
 
     def set_property(self, key: str, value):
+        if key in os.environ:
+            value = os.environ[key]
         self.__setitem__(key, value)
         if key.startswith("encrypted."):
             dkey = key.split(".", 1)[1]
             decrypt = self._decrypt_impl()
             d_val = decrypt(value)
             self.__setitem__(dkey, d_val)
+        # do we need to reload resources?
+        if not (self.loading_resources or self.resource_path == self.get_string("env.resources",self.resource_path)):
+            self.load(self.get_string("env.resources"))
+
+
 
     def get_property(self, key: str, default=None):
         return self.get(key, default)

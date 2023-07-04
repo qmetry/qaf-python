@@ -1,4 +1,3 @@
-import time
 from copy import deepcopy
 
 import pytest
@@ -22,11 +21,10 @@ def pytest_fixture_post_finalizer(fixturedef, request):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_fixture_setup(fixturedef, request):
-    start_step(fixturedef.argname, fixturedef.func.__name__)
-    start = time.time()
+    start_step(fixturedef.argname, fixturedef.func.__name__,  list(map(str, fixturedef.params)))
     outcome = yield
-    # result = fixturedef.cached_result if hasattr(fixturedef, 'cached_result') else None
-    end_step(not outcome.excinfo)
+    result = str(fixturedef.cached_result) if hasattr(fixturedef, 'cached_result') else None
+    end_step(not outcome.excinfo, result)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -40,55 +38,62 @@ def pytest_runtest_makereport(item, call):
     setattr(item, "report", report)
 
     if not report.failed and is_verification_failed():
-        report.outcome = "failed"
+        report.outcome = PyTestStatus.failed.name
         report.longrepr = 'AssertionError: {0} verification failed.'.format(get_verification_errors())
 
     report_result(item)
-    tear_down()
     clear_assertions_log()
+    if report.when == "teardown":
+        tear_down()
 
 
 def report_result(node):
-    report = node.rep_call if hasattr(node, "rep_call") else node.report
+    report = node.report
     testcase_run_result = TestCaseRunResult()
     # not isinstance(node, FixtureDef)
     testcase_run_result.isTest = report.when == "call"
-    name = node.name if report.when == "call" else f'{report.when}-{node.name}'
 
-    testcase_run_result.className = _get_class_name(node)
-    testcase_run_result.checkPoints = get_checkpoint_results().copy()
-    testcase_run_result.commandLogs = get_command_logs().copy()
-    testcase_run_result.starttime = int(report.start * 1000)
-    testcase_run_result.endtime = int(report.stop * 1000)
-    metadata_from_markers = get_metadata(node.own_markers) if hasattr(node, "own_markers") else {}
-
-    testcase_run_result.metaData = {"name": name, "resultFileName": name,
-                                    "reference": six.text_type(node.nodeid),
-                                    "description": node.originalname} | metadata_from_markers
-    if hasattr(node, "callspec"):
-        testcase_run_result.testData = [node.callspec.params]
-    try:
-        testcase_run_result.throwable = report.longreprtext
-    except:
-        testcase_run_result.throwable = str(report.longrepr[-1])
-    testcase_run_result.executionInfo = {
-        "testName": "PyTest",
-        "suiteName": node.session.name,
-        "driverCapabilities": {
-            "browser-desired-capabilities": get_bundle().get("driver.desiredCapabilities", {}).copy(),
-            "browser-actual-capabilities": get_bundle().get("driverCapabilities", {}).copy()
-        }
-    }
+    testcase_run_result.checkPoints = deepcopy(get_checkpoint_results())
     testcase_run_result.status = PyTestStatus.from_name(report.outcome).name
-    update_result(testcase_run_result)
 
-    if report.when == "setup" and testcase_run_result.status != PyTestStatus.passed.name:
-        # report test as skipped
-        testcase_run_result_skip = deepcopy(testcase_run_result)
-        testcase_run_result_skip.metaData.update({"name": node.name, "resultFileName": node.name})
-        testcase_run_result_skip.status = PyTestStatus.skipped.name
-        testcase_run_result_skip.isTest = True
-        update_result(testcase_run_result_skip)
+    # no need to report setup/teardown if nothing done
+    if testcase_run_result.isTest or testcase_run_result.checkPoints or not report.passed:
+        name = node.name if testcase_run_result.isTest else f'{report.when}-{node.name}'
+        testcase_run_result.className = _get_class_name(node)
+        testcase_run_result.commandLogs = deepcopy(get_command_logs())
+        testcase_run_result.starttime = int(report.start * 1000)
+        testcase_run_result.endtime = int(report.stop * 1000)
+
+        metadata_from_markers = get_metadata(node.own_markers) \
+            if testcase_run_result.isTest and hasattr(node, "own_markers") else {}
+
+        testcase_run_result.metaData = {"name": name, "resultFileName": name,
+                                        "reference": six.text_type(node.nodeid),
+                                        "description": node.originalname} | metadata_from_markers
+        if testcase_run_result.isTest and hasattr(node, "callspec"):
+            testcase_run_result.testData = [node.callspec.params]
+        try:
+            testcase_run_result.throwable = report.longreprtext
+        except:
+            testcase_run_result.throwable = str(report.longrepr[-1])
+        testcase_run_result.executionInfo = {
+            "testName": "PyTest",
+            "suiteName": node.session.name,
+            "driverCapabilities": {
+                "browser-desired-capabilities": deepcopy(get_bundle().get("driver.desiredCapabilities", {})),
+                "browser-actual-capabilities": deepcopy(get_bundle().get("driverCapabilities", {}))
+            }
+        }
+        update_result(testcase_run_result)
+
+        if report.when == "setup" and not report.passed:
+            # report test as skipped
+            testcase_run_result_skip = deepcopy(testcase_run_result)
+            testcase_run_result_skip.metaData.update({"name": node.name, "resultFileName": node.name})
+            testcase_run_result_skip.status = PyTestStatus.skipped.name
+            testcase_run_result_skip.starttime = testcase_run_result_skip.endtime # just indicates when skipped!
+            testcase_run_result_skip.isTest = True
+            update_result(testcase_run_result_skip)
 
 
 def _get_class_name(node):
