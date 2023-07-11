@@ -66,21 +66,16 @@ Feature: Login functionality
 You can run BDD same as running normal pytest
 
 ```python
-pytest
-features  # all files from features directory 
-pytest
-features / login.feature  # single file
-pytest
-features - -dryrun  # dry-run mode
+pytest features  # all files from features directory 
+pytest features/login.feature  # single file
+pytest features --dryrun  # dry-run mode
 ```
 
 you can use pytest mark or qaf metadata filter.
 
 ```python
 pytest
-features - m
-web - -metadata - filter
-"module == 'login' and storyKey in ['PRJ001', 'PRJ005']"
+features -m web --metadata-filter "module == 'login' and storyKey in ['PRJ001', 'PRJ005']"
 ```
 
 ### Test case authoring in python script (pytest)
@@ -120,7 +115,7 @@ Here is list of features in addition to features supported by pytest
   platforms.
 
 - **Configuration Management**: The framework offers robust configuration management capabilities. It supports various
-  configuration file formats such as ini, properties, wsc, loc, locj, and wscj. This allows you to manage and organize
+  configuration file formats such as `ini`, `properties`, `wsc`, `loc`, `locj`, and `wscj`. This allows you to manage and organize
   your test configuration efficiently.
 
 - **Driver Management**: The framework simplifies the management of WebDriver and Appium drivers. It supports on-demand
