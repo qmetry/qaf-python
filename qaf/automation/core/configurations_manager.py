@@ -29,7 +29,7 @@ from qaf.automation.keys.application_properties import ApplicationProperties as 
 from qaf.automation.util.property_util import PropretyUtil
 
 __all__ = [
-    "expression", "get_bundle"
+    "expression", "get_bundle", "ConfigurationsManager"
 ]
 
 
