@@ -25,6 +25,7 @@ class CommandLogBean:
     """
     @author: Chirag Jayswal
     """
+
     def __init__(self) -> None:
         self.commandName = ''
         self.args = []
@@ -91,7 +92,7 @@ class CommandLogBean:
         return _dict
 
     def to_string(self) -> str:
-        string = f'Command: {0} {1} {2}', self.commandName, self.args, self.result
+        string = f'Command: {self.commandName} {self.args} {self.result}'
         # for key, value in self.args.items():
         #     string = string + ' ' + str(key) + ':' + str(value)
         # string = string + str(self.result)
