@@ -13,7 +13,9 @@ from qaf.automation.core.reporter import Reporter
 pkg_loaded = False
 
 
-def execute_step(bdd_step_call, testdata={}, is_dryrun_mode: bool = False, should_skip=False):
+def execute_step(bdd_step_call, testdata=None, is_dryrun_mode: bool = False, should_skip=False):
+    if testdata is None:
+        testdata = {}
     from qaf.automation.bdd2.model import Bdd2Step
     bdd_step = Bdd2Step(bdd_step_call) if type(bdd_step_call) is str else bdd_step_call
     found, step, args_dict = _find_match(bdd_step.name, testdata)
@@ -34,7 +36,7 @@ def execute_step(bdd_step_call, testdata={}, is_dryrun_mode: bool = False, shoul
         step.executeWithContext(execution_tracker)
 
 
-def _gen_code_snnipet(bdd_step):
+def _gen_code_snipet(bdd_step):
     pass
 
 

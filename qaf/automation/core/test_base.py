@@ -148,7 +148,9 @@ def is_verification_failed() -> bool:
     return get_verification_errors() > 0
 
 
-def start_step(step_name, display_name, args=[]):
+def start_step(step_name, display_name, args=None):
+    if args is None:
+        args = []
     current_step = _get_cur_step()
     step = _StepLogger(step_name, display_name, current_step, args)
     return get_test_context()

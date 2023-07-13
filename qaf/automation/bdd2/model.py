@@ -76,7 +76,9 @@ class Bdd2Step(Bdd2Node, SupportsBdd2DataTable):
         self._keyword = match.group() if match else ""
         self._name = value.replace(self.keyword, "").strip()
 
-    def execute(self, testdata={}, is_dryrun_mode: bool = False, should_skip=False):
+    def execute(self, testdata=None, is_dryrun_mode: bool = False, should_skip=False):
+        if testdata is None:
+            testdata = {}
         return execute_step(self, testdata, is_dryrun_mode, should_skip)
 
     def __deepcopy__(self, memo):
@@ -93,7 +95,9 @@ class Bdd2StepCollection(Bdd2Node):
     is_dryrun_mode: bool = False
     supports_background = False
 
-    def execute(self, testdata={}):
+    def execute(self, testdata=None):
+        if testdata is None:
+            testdata = {}
         self.exception = None
         steps = self.steps.copy()
         for bdd_step in steps:

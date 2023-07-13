@@ -169,7 +169,9 @@ class PropretyUtil(dict):
     def get_raw_value(self, key:str, default=None):
         return self.__getitem__(key, default)
 
-    def interpolate(self, rest, prefix, suffix, pattern, ext_dict={}):
+    def interpolate(self, rest, prefix, suffix, pattern, ext_dict=None):
+        if ext_dict is None:
+            ext_dict = {}
         accum = []
         while rest:
             p = rest.find(prefix[0])
@@ -212,7 +214,9 @@ class PropretyUtil(dict):
 
         return ''.join(accum)
 
-    def resolve(self, value, disc={}):
+    def resolve(self, value, disc=None):
+        if disc is None:
+            disc = {}
         if value and isinstance(value, str):
             pattern = re.compile(r"<%([^>]+)%>")
             value = self.interpolate(value, "<%", "%>", pattern, disc)
