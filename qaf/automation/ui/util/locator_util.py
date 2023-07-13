@@ -63,15 +63,12 @@ def parse_locator(locator: str, w3c=False) -> (str, str, str, dict):
     loc = locator
     description = locator
     metadata = {}
-    if (is_json(locator)):
+    if is_json(locator):
         metadata = json.loads(locator)
         loc = metadata.get("locator", metadata.get("loc"))
         description = metadata.get("desc", metadata.get("description", locator))
 
-    by = ""
-    loc_value = ""
     kv = loc.split("=", 1)
-    loc_value = kv[0]
     if loc.startswith("./") or loc.startswith("//"):
         by = By.XPATH
         loc_value = loc
