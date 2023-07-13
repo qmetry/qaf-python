@@ -75,7 +75,7 @@ class QAFTestStep:
         if args and callable(args[0]):
             self._decorate(args[0])
             return self
-        self.execute(*args, **kwargs)
+        return self.execute(*args, **kwargs)
 
     def _decorate(self, func):
         from qaf.automation.bdd2.step_registry import step_registry

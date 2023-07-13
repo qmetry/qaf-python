@@ -21,10 +21,13 @@ def pytest_fixture_post_finalizer(fixturedef, request):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_fixture_setup(fixturedef, request):
-    start_step(fixturedef.argname, fixturedef.func.__name__,  list(map(str, fixturedef.params)))
-    outcome = yield
-    result = str(fixturedef.cached_result) if hasattr(fixturedef, 'cached_result') else None
-    end_step(not outcome.excinfo, result)
+    try:
+        start_step(fixturedef.argname, fixturedef.func.__name__,  list(map(str, fixturedef.params or [])))
+        outcome = yield
+        result = str(fixturedef.cached_result) if hasattr(fixturedef, 'cached_result') else None
+        end_step(not outcome.excinfo, result)
+    except BaseException as e:
+        pass
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
