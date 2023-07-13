@@ -91,8 +91,8 @@ class QAFWebDriver(RemoteWebDriver):
         qaf_web_element.metadata = metadata
         return qaf_web_element
 
-    def find_elements(self, by: Optional[str] = By.ID, value: Optional[str] = None, key: Optional[str] = None) -> [
-        qafwebelement.QAFWebElement]:
+    def find_elements(self, by: Optional[str] = By.ID, value: Optional[str] = None, key: Optional[str] = None) -> \
+            [qafwebelement.QAFWebElement]:
         description = value
         metadata = {}
         if key is not None and len(key) > 0:
@@ -129,7 +129,7 @@ class QAFWebDriver(RemoteWebDriver):
 
         try:
             if command_tracker.response is None:
-                command_tracker.start_time=round(time.time() * 1000)
+                command_tracker.start_time = round(time.time() * 1000)
                 response = super(QAFWebDriver, self).execute(command_tracker.command,
                                                              command_tracker.parameters)
                 command_tracker.response = response
@@ -187,6 +187,14 @@ class QAFWebDriver(RemoteWebDriver):
     @property
     def to_appium_webdriver(self) -> AppiumDriver:
         return self if self.__under_laying_driver is None else self.__under_laying_driver
+
+    @property
+    def capabilities(self):
+        return self._capabilities
+
+    @capabilities.setter
+    def capabilities(self, value):
+        self._capabilities = value
 
 
 def qaf_webdriver_wait(driver: QAFWebDriver, timeout,
