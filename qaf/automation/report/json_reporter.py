@@ -52,8 +52,8 @@ class JsonReporter(TestCaseResultUpdator):
 
     def __init__(self):
         os.environ["json.report.root.dir"] = self.REPORT_DIR
-        self.suiteStatusCounters = [] #get_bundle().get_or_set("execution.suite_status_counters", [])
-        self.testSetStatusCounters = [] #get_bundle().get_or_set("execution.test_set_status_counters", [])
+        self.suiteStatusCounters = []  # get_bundle().get_or_set("execution.suite_status_counters", [])
+        self.testSetStatusCounters = []  # get_bundle().get_or_set("execution.test_set_status_counters", [])
         os.makedirs(self.JSON_REPORT_DIR, exist_ok=True)
         self.lock = Lock()
 
@@ -78,15 +78,15 @@ class JsonReporter(TestCaseResultUpdator):
 
         with self.lock:
             # suite meta - info
-            self.updateSuiteMetaData(result, suite_status_counter, test_status_counter)
+            self.update_suite_meta_data(result, suite_status_counter, test_status_counter)
         # test overview
-        self.updateTestOverView(result, test_status_counter)
-        self.addMethodResult(result, test_status_counter)
+        self.update_test_overview(result, test_status_counter)
+        self.add_method_result(result, test_status_counter)
 
         return True
 
-    def updateSuiteMetaData(self, result: TestCaseRunResult, suite_status_counter: StatusCounter,
-                            test_status_counter: StatusCounter):
+    def update_suite_meta_data(self, result: TestCaseRunResult, suite_status_counter: StatusCounter,
+                               test_status_counter: StatusCounter):
         suite_report_file = os.path.join(suite_status_counter.file, "meta-info.json")
         # suite_report = {}
         if os.path.exists(suite_report_file):
@@ -118,7 +118,6 @@ class JsonReporter(TestCaseResultUpdator):
             # write to file
             self.write_to_file(report_meta_info_file, meta_info)
 
-
         suite_status = {
             "status": suite_status_counter.get_status(),
             "total": suite_status_counter.get_total(),
@@ -129,7 +128,7 @@ class JsonReporter(TestCaseResultUpdator):
         }
         self.write_to_file(suite_report_file, suite_report | suite_status)
 
-    def updateTestOverView(self, result: TestCaseRunResult, test_status_counter: StatusCounter):
+    def update_test_overview(self, result: TestCaseRunResult, test_status_counter: StatusCounter):
         overview_file = os.path.join(test_status_counter.file, "overview.json")
         # test_overview = {}
         if os.path.exists(overview_file):
@@ -143,8 +142,8 @@ class JsonReporter(TestCaseResultUpdator):
                 "classes": [result.className],
                 "envInfo": {
                     "isfw-build-info": {
-                        "qaf-Type":"qaf-python",
-                        "qaf-Revision":"SNAPSHOT"
+                        "qaf-Type": "qaf-python",
+                        "qaf-Revision": "SNAPSHOT"
                     },
                     "run-parameters": {},
                     "execution-env-info": {
@@ -172,7 +171,7 @@ class JsonReporter(TestCaseResultUpdator):
         }
         self.write_to_file(overview_file, test_overview | test_status)
 
-    def addMethodResult(self, result: TestCaseRunResult, test_status_counter: StatusCounter):
+    def add_method_result(self, result: TestCaseRunResult, test_status_counter: StatusCounter):
         # scenario_file_path = os.path.join(self.path_to_write, result.get_name() + '.json')
         method_result_dir = os.path.join(test_status_counter.file,
                                          result.className or os.getenv('CURRENT_SCENARIO_DIR', ""))
@@ -225,7 +224,6 @@ class JsonReporter(TestCaseResultUpdator):
             # check create dir
             os.makedirs(name=status_counter_to_match.file, exist_ok=True)
             return status_counter_to_match
-
 
     @staticmethod
     def write_to_file(file_path, data):
