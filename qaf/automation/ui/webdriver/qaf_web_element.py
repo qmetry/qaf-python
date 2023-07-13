@@ -297,102 +297,96 @@ class QAFWebElement(RemoteWebElement):
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_text(text_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasText(text_)(self)
             outcome = return_value[0]
-            actaul_ = return_value[1]
-        self.report("text", outcome, msg, expected=text_, actual=actaul_)
+            actual = return_value[1]
+        self.report("text", outcome, msg, expected=text_, actual=actual)
         return outcome
 
     def verify_text_contain(self, text_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_matches_text(contains_string(text_))
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementTextMatches(contains_string(text_))(self)
             outcome = return_value[0]
-            actaul_ = return_value[1]
-        self.report("text", outcome, msg, expected=text_, actual=actaul_)
+            actual = return_value[1]
+        self.report("text", outcome, msg, expected=text_, actual=actual)
         return outcome
 
     def verify_not_text(self, text_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_not_text(text_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasText(text_)(self)
             outcome = not return_value[0]
-            actaul_ = return_value[1]
-        self.report("nottext", outcome, msg, expected=text_, actual=actaul_)
+            actual = return_value[1]
+        self.report("nottext", outcome, msg, expected=text_, actual=actual)
         return outcome
 
     def verify_not_text_contains(self, text_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_not_matches_text(contains_string(text_))
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementTextMatches(contains_string(text_))(self)
             outcome = not return_value[0]
-            actaul_ = return_value[1]
-        self.report("nottext", outcome, msg, expected=text_, actual=actaul_)
+            actual = return_value[1]
+        self.report("nottext", outcome, msg, expected=text_, actual=actual)
         return outcome
 
     def verify_value(self, value_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_value(value_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasValue(value_)(self)
             outcome = return_value[0]
-            actaul_ = return_value[1]
-        self.report("value", outcome, msg, expected=value_, actual=actaul_)
+            actual = return_value[1]
+        self.report("value", outcome, msg, expected=value_, actual=actual)
         return outcome
 
     def verify_not_value(self, value_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_not_value(value_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasValue(value_)(self)
             outcome = not return_value[0]
-            actaul_ = return_value[1]
-        self.report("notvalue", outcome, msg, expected=value_, actual=actaul_)
+            actual = return_value[1]
+        self.report("notvalue", outcome, msg, expected=value_, actual=actual)
         return outcome
 
     def verify_selected(self, msg: Optional[str] = '') -> bool:
@@ -419,102 +413,96 @@ class QAFWebElement(RemoteWebElement):
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_attribute(attr_, value_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasAttribute(attr_, value_)(self)
             outcome = return_value[0]
-            actaul_ = return_value[1]
-        self.report("attribute", outcome, msg, op=attr_, expected=value_, actual=actaul_)
+            actual = return_value[1]
+        self.report("attribute", outcome, msg, op=attr_, expected=value_, actual=actual)
         return outcome
 
     def verify_not_attribute(self, attr_: str, value_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_not_attribute(attr_, value_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasAttribute(attr_, value_)(self)
             outcome = not return_value[0]
-            actaul_ = return_value[1]
-        self.report("notattribute", outcome, msg, op=attr_, expected=value_, actual=actaul_)
+            actual = return_value[1]
+        self.report("notattribute", outcome, msg, op=attr_, expected=value_, actual=actual)
         return outcome
 
     def verify_css_class(self, class_name_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_css_class(class_name_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasCssClass(class_name_)(self)
             outcome = return_value[0]
-            actaul_ = return_value[1]
-        self.report("cssclass", outcome, msg, expected=class_name_, actual=actaul_)
+            actual = return_value[1]
+        self.report("cssclass", outcome, msg, expected=class_name_, actual=actual)
         return outcome
 
     def verify_not_css_class(self, class_name_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_not_css_class(class_name_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasCssClass(class_name_)(self)
             outcome = not return_value[0]
-            actaul_ = return_value[1]
-        self.report("notcssclass", outcome, msg, expected=class_name_, actual=actaul_)
+            actual = return_value[1]
+        self.report("notcssclass", outcome, msg, expected=class_name_, actual=actual)
         return outcome
 
     def verify_css_style(self, style_name_: str, value_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_css_style(style_name_, value_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasCssStyle(style_name_, value_)(self)
             outcome = return_value[0]
-            actaul_ = return_value[1]
-        self.report("cssstyle", outcome, msg, op=style_name_, expected=value_, actual=actaul_)
+            actual = return_value[1]
+        self.report("cssstyle", outcome, msg, op=style_name_, expected=value_, actual=actual)
         return outcome
 
     def verify_not_css_style(self, style_name_: str, value_: str, msg: Optional[str] = '') -> bool:
         if not self.__ensure_present(msg):
             return False
 
-        actaul_ = ''
         msg = self.get_description(msg)
         try:
             return_value = self.wait_for_not_css_style(style_name_, value_)
             outcome = return_value[0]
-            actaul_ = return_value[1]
+            actual = return_value[1]
         except TimeoutException:
             return_value = ElementHasCssStyle(style_name_, value_)(self)
             outcome = not return_value[0]
-            actaul_ = return_value[1]
-        self.report("notcssstyle", outcome, msg, op=style_name_, expected=value_, actual=actaul_)
+            actual = return_value[1]
+        self.report("notcssstyle", outcome, msg, op=style_name_, expected=value_, actual=actual)
         return outcome
 
     def assert_present(self, msg: Optional[str] = '') -> None:
@@ -616,7 +604,7 @@ class QAFWebElement(RemoteWebElement):
                 return True
             else:
                 return False
-        except:
+        except Exception as e:
             return False
 
     def _execute(self, command: str, params: dict = None) -> dict:
@@ -709,7 +697,7 @@ class QAFWebElement(RemoteWebElement):
     def before_command(self, command_tracker: CommandTracker) -> None:
         from qaf import pluginmagager
         command_tracker.stage = Stage.executing_before_method
-        pluginmagager.hook.before_element_command(element=self,command_tracker=command_tracker)
+        pluginmagager.hook.before_element_command(element=self, command_tracker=command_tracker)
         # if self._listeners is not None:
         #     for listener in self._listeners:
         #         listener.before_command(self, command_tracker)
@@ -717,7 +705,7 @@ class QAFWebElement(RemoteWebElement):
     def after_command(self, command_tracker: CommandTracker) -> None:
         from qaf import pluginmagager
         command_tracker.stage = Stage.executing_after_method
-        pluginmagager.hook.after_element_command(element=self,command_tracker=command_tracker)
+        pluginmagager.hook.after_element_command(element=self, command_tracker=command_tracker)
 
         # if self._listeners is not None:
         #     for listener in self._listeners:
@@ -736,8 +724,7 @@ class QAFWebElement(RemoteWebElement):
             command_tracker.stage = Stage.executing_method
             self._execute(command_tracker.command, parameters)
 
-        pluginmagager.hook.on_element_command_failure(element=self,command_tracker=command_tracker)
-
+        pluginmagager.hook.on_element_command_failure(element=self, command_tracker=command_tracker)
 
         # if self._listeners is not None:
         #     if command_tracker.has_exception():
