@@ -31,7 +31,7 @@ def should_include(expr, scenario):
         evaluator = EvalWithCompoundTypes(names=scenario.metadata)
         return evaluator.eval(expr)
     except NameNotDefined:
-        False
+        return False
 
 
 def get_test_func(scenario: Bdd2Scenario):
