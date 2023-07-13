@@ -4,7 +4,7 @@ from dataclasses import field, dataclass
 from typing import TypeVar
 
 from qaf.automation.bdd2.bdd_keywords import *
-from qaf.automation.bdd2.bdd_keywords import TAG, SCENARIO_OUTELINE
+from qaf.automation.bdd2.bdd_keywords import TAG, SCENARIO_OUTLINE
 from qaf.automation.bdd2.model import SupportsBdd2DataTable, Bdd2Scenario, Bdd2Background, Bdd2Examples, \
     Bdd2MultiLineComment, Bdd2Feature, Bdd2Step, Bdd2StepDefinition
 from qaf.automation.bdd2.qaf_teststep import QAFTestStep
@@ -186,7 +186,7 @@ def _getType(line):
     if line.endswith(MULTI_LINE_COMMENT) and len(set(line)) > 1:  # contains other than comment char
         return MULTI_LINE_COMMENT_END
     match = re.match(
-        "|".join([TAG, SCENARIO_OUTELINE, SCENARIO, STEP_DEF, EXAMPLES, FEATURE, BACKGROUND, MULTI_LINE_COMMENT])
+        "|".join([TAG, SCENARIO_OUTLINE, SCENARIO, STEP_DEF, EXAMPLES, FEATURE, BACKGROUND, MULTI_LINE_COMMENT])
         , line,
         re.I)
     return match.group() if match else ""
