@@ -152,7 +152,7 @@ def start_step(step_name, display_name, args=None):
     if args is None:
         args = []
     current_step = _get_cur_step()
-    step = _StepLogger(step_name, display_name, current_step, args)
+    _ = _StepLogger(step_name, display_name, current_step, args)
     return get_test_context()
 
 
@@ -196,6 +196,7 @@ def _set_cur_step(step):
 
 
 def take_screenshot() -> str:
+    filename = ""
     if has_driver():
         try:
             os.makedirs(name=os.path.join(REPORT_DIR, 'img'), exist_ok=True)
@@ -205,7 +206,7 @@ def take_screenshot() -> str:
             return filename
         except Exception:
             return filename
-    return ""
+    return filename
 
 
 def shut_down():
@@ -221,7 +222,9 @@ atexit.register(shut_down)
 
 class _StepLogger(object):
 
-    def __init__(self, name, dispay_name, parent, args=[]):
+    def __init__(self, name, dispay_name, parent, args=None):
+        if args is None:
+            args = []
         self.st_time = round(time.time() * 1000)
         checkpoint = CheckPointBean()
         command_log = CommandLogBean()
