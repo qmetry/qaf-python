@@ -27,9 +27,11 @@ from qaf.automation.integration.testcase_run_result import TestCaseRunResult
     Register custom updator class using `result.updator` property
     @author: Chirag Jayswal
     """
+
+
 class TestCaseResultUpdator(ABC):
     @abstractmethod
-    def update_result(self, result:TestCaseRunResult) -> bool:
+    def update_result(self, result: TestCaseRunResult) -> bool:
         pass
 
     @abstractmethod

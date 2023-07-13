@@ -28,15 +28,14 @@ class TestCaseRunResult:
         self.status = ""
         self.metaData = {}
         self.testData = []
-        self.steps=[]
-        self.starttime=0
-        self.endtime=0
-        self.isTest=True
-        self.executionInfo={}
-        self.className=""
-        self.willRetry=False
-        self.throwable=None
+        self.steps = []
+        self.starttime = 0
+        self.endtime = 0
+        self.isTest = True
+        self.executionInfo = {}
+        self.className = ""
+        self.willRetry = False
+        self.throwable = None
 
     def get_name(self):
         return self.metaData.get("name")
-

@@ -31,8 +31,8 @@ def register_updaters():
     logging.getLogger().info("Registered " + listeners[0].get_tool_name())
 
     if CM().contains_key(AP.RESULT_UPDATERS):
+        class_name = CM().get_str_for_key(AP.RESULT_UPDATERS)
         try:
-            class_name = CM().get_str_for_key(AP.RESULT_UPDATERS)
             result_updater = load_class(class_name)()
             listeners.append(result_updater)
             logging.getLogger().info("Registered " + result_updater.get_tool_name())
@@ -47,7 +47,7 @@ def submit_result(result, result_updater):
         logging.getLogger().info(
             result_updater.get_tool_name() + " updating::" + result.get_name() + " - " + result.status)
         executor = CM.get_bundle().get_or_set("__executor", ThreadPoolExecutor(max_workers=1))
-        executor.submit(result_updater.update_result,result)
+        executor.submit(result_updater.update_result, result)
     except Exception:
         logging.getLogger().exception(
             result_updater.get_tool_name() + " Unable to update result::" + result.get_name() + " - " + result.status)
