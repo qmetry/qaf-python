@@ -65,6 +65,7 @@ def pytest_configure(config):
     config.option.htmlpath = report
     config.option.self_contained_html = True
 
+
 def pytest_generate_tests(metafunc):
     global_testdata = get_bundle().get_raw_value("global.testdata")
     dataprovider = json.loads(global_testdata) if global_testdata else None
@@ -90,6 +91,7 @@ def pytest_collect_file(parent, file_path):
         from qaf.automation.bdd2.factory import BDD2File
         return BDD2File.from_parent(parent, path=file_path)
 
+
 def pytest_load_initial_conftests(early_config, parser, args):
     def determine(arg):
         if arg.startswith("-D"):
@@ -98,4 +100,5 @@ def pytest_load_initial_conftests(early_config, parser, args):
             os.environ[key] = val
             return True
         return False
+
     args[:] = [arg for arg in args if not determine(arg)]

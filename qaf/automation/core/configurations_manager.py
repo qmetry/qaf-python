@@ -171,4 +171,3 @@ class ConfigurationsManager(metaclass=Singleton):
 
 get_bundle = ConfigurationsManager.get_bundle
 expression = ConfigurationsManager.expression
-

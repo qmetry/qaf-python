@@ -24,7 +24,6 @@ from typing import (
 
 class QAFException(BaseException):
     """Generic Exception"""
-
     pass
 
 
@@ -34,36 +33,34 @@ class QuietError(BaseException):
 
 
 class ParseError(QAFException, QuietError):
-    "BDD2 parse error"
+    """BDD2 parse error"""
     pass
 
 
 class StepNotFound(QAFException, QuietError):
-    "BDD2 Step Not found"
+    """BDD2 Step Not found"""
 
-    def __init__(self,step) -> None:
+    def __init__(self, step) -> None:
         """
         Thrown when validation will fail.
 
         Note:
             Do not include the `self` parameter in the ``Args`` section.
-        Args:
-            message (str): Human readable string describing the exception
         """
         self.message = f'step not found: {step.name}'
         super(StepNotFound, self).__init__()
-        self.step=step
+        self.step = step
 
     def __repr__(self):
         return f"Step implementation not found: {self.step.name}\n" \
-               f"called from {self.step.scenario.file}\n"\
+               f"called from {self.step.scenario.file}\n" \
                f"{self.step.keyword} {self.step.name} @{self.step.line_number}\n" \
                f"{self.step.scenario.name}@{self.step.scenario.line_number}\n" \
 
 
-class DataProviderError(QAFException, QuietError):
-    "Data provider error"
 
+class DataProviderError(QAFException, QuietError):
+    """Data provider error"""
     pass
 
 
@@ -83,8 +80,6 @@ class ValidationError(Exception):
 class ServerError(Exception):
     def __init__(self, message: Optional[str] = "") -> None:
         """
-        Thrown when Proteus server will response with error.
-
         Note:
             Do not include the `self` parameter in the ``Args`` section.
         Args:
