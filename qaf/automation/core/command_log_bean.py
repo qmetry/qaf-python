@@ -65,7 +65,7 @@ class CommandLogBean:
     def subLogs(self, value: list):
         self.__subLogs = value
 
-    def add_subLogs(self, sub_log: str) -> None:
+    def add_subLogs(self, sub_log: "CommandLogBean") -> None:
         self.__subLogs.append(sub_log)
 
     @property
@@ -84,7 +84,7 @@ class CommandLogBean:
 
         _dict = {
             "commandName": self.commandName,
-            "args": self.args,
+            "args": list(map(str, self.args)),
             "result": self.result,
             "subLogs": self.subLogs,
             "duration": self.duration,
