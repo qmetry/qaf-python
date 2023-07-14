@@ -44,7 +44,7 @@ def pytest_configure(config):
                    "indices:[])"
                    ": external data provider. see https://qmetry.github.io/qaf/latest/maketest_data_driven.html"
     )
-    config.pluginmagager.register(hooks, 'QAFListener')
+    config.pluginmanager.register(hooks, 'QAFListener')
     OUTPUT_TEST_RESULTS_DIR = get_bundle().get_or_set('test.results.dir',
                                                       os.environ.get('test.results.dir', "test-results"))
     REPORT_DIR = get_bundle().get_or_set('json.report.root.dir',
