@@ -46,7 +46,7 @@ class QAFTestStep:
         end_step(True if exc_type is None else False, None)
 
     def execute(self, *args, **kwargs):
-        step_run_context = StepTracker(name=self.name, args=args, kwargs=kwargs)
+        step_run_context = StepTracker(name=self.name, args=[*args,], kwargs=kwargs)
         return self.executeWithContext(step_run_context)
 
     def executeWithContext(self, step_tracker: StepTracker):
@@ -76,6 +76,10 @@ class QAFTestStep:
             self._decorate(args[0])
             return self
         return self.execute(*args, **kwargs)
+
+    def __get__(self, instance, owner):
+        from functools import partial
+        return partial(self.__call__, instance)
 
     def _decorate(self, func):
         from qaf.automation.bdd2.step_registry import step_registry
@@ -118,9 +122,10 @@ class QAFTestStep:
         name = self.description or self.name
         try:
             if args:
-                name = re.sub(r'\((.*?)\)', lambda match: str(args.pop(0)), self.matcher.regex_pattern)
+                values=[*args]
+                name = re.sub(r'\((.*?)\)', lambda match: str(values.pop(0)), self.matcher.regex_pattern)
             if kwargs:
-                #name = self.description.format(**kwargs)
+                name = self.description.format(**kwargs)
                 name = replace_groups(self.matcher.regex_pattern, name, **kwargs)
         except:
             pass
@@ -133,26 +138,27 @@ class QAFTestStep:
 
         if len(step_tracker.args) + len(step_tracker.kwargs) != len(argSpec.args):
             if step_tracker.args:
-                if "context" == argSpec.args[0] \
-                        and type(step_tracker.args[0]) != type(step_tracker.context):
-                    step_tracker.args = [step_tracker.context]
+                context_pos = argSpec.args.index("context")
+                if context_pos >= 0 and context_pos < len(step_tracker.args) \
+                        and type(step_tracker.args[context_pos]) != type(step_tracker.context):
+                    step_tracker.args = []
                     step_tracker.args.extend(step_tracker.actual_args)
-                step_tracker.kwargs.update({argSpec.args[i]: step_tracker.args.pop(0)
-                                            for i in range(len(step_tracker.args))})
+                    step_tracker.args.insert(context_pos, step_tracker.context or step_tracker)
+        step_tracker.kwargs.update({argSpec.args[i]: step_tracker.args.pop(0) for i in range(len(step_tracker.args))})
 
-            argset = set(argSpec.args) - set(step_tracker.kwargs)
-            for argname in argset:  # check available pytest fixture to inject
-                if "context" == argname:
-                    step_tracker.kwargs[argname] = step_tracker.context
-                if hasattr(step_tracker.context, "session"):  # pytest request
-                    fm = step_tracker.context.session._fixturemanager
-                    fdefs = fm.getfixturedefs(argname=argname, nodeid=step_tracker.context.node.nodeid)
-                    if fdefs:
-                        for fdef in fdefs:
-                            step_tracker.kwargs[argname] = step_tracker.context.node.ihook.pytest_fixture_setup(
-                                fixturedef=fdef,
-                                request=step_tracker.context)
-                            break
+        argset = set(argSpec.args) - set(step_tracker.kwargs)
+        for argname in argset:  # check available pytest fixture to inject
+            if "context" == argname:
+                step_tracker.kwargs[argname] = step_tracker.context or step_tracker
+            if hasattr(step_tracker.context, "session"):  # pytest request
+                fm = step_tracker.context.session._fixturemanager
+                fdefs = fm.getfixturedefs(argname=argname, nodeid=step_tracker.context.node.nodeid)
+                if fdefs:
+                    for fdef in fdefs:
+                        step_tracker.kwargs[argname] = step_tracker.context.node.ihook.pytest_fixture_setup(
+                            fixturedef=fdef,
+                            request=step_tracker.context)
+                        break
 
 
 def replace_groups(pattern, string, replacements):

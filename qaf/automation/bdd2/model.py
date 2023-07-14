@@ -83,7 +83,7 @@ class Bdd2Step(Bdd2Node, SupportsBdd2DataTable):
 
     def __deepcopy__(self, memo):
         # Exclude the parent reference during deepcopy
-        new_obj = type(self)(name=self.display_name, lineNo=self.lineNo, data_table=self.data_table)
+        new_obj = type(self)(name=self.display_name, lineNo=self.lineNo)
         memo[id(self)] = new_obj
         # new_obj.parent=self.parent
         return new_obj
