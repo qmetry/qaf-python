@@ -26,5 +26,5 @@ class GenericOptions(BaseOptions):
             try:
                 self.set_capability(name, value)
             except:
-                setattr(self._cap,name,value)
+                setattr(self._caps,name,value)
         return self

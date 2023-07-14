@@ -24,7 +24,7 @@ def update_item(items: list, background_names: list, scenario):
                 item.add_marker(group)
 
 
-def should_include(expr, scenario):
+def should_include(expr, scenario) -> bool:
     if not expr:
         return True
     try:

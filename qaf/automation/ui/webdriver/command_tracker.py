@@ -73,19 +73,19 @@ class CommandTracker:
         self.__retry = value
 
     @property
-    def start_time(self) -> str:
+    def start_time(self) -> int:
         return self.__start_time
 
     @start_time.setter
-    def start_time(self, value: str) -> None:
+    def start_time(self, value: int) -> None:
         self.__start_time = value
 
     @property
-    def end_time(self) -> str:
+    def end_time(self) -> int:
         return self.__end_time
 
     @end_time.setter
-    def end_time(self, value: str) -> None:
+    def end_time(self, value: int) -> None:
         self.__end_time = value
 
     @property

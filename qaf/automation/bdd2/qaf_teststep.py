@@ -47,9 +47,9 @@ class QAFTestStep:
 
     def execute(self, *args, **kwargs):
         step_run_context = StepTracker(name=self.name, args=args, kwargs=kwargs)
-        return self.executeWithContext(step_run_context)
+        return self.execute_with_context(step_run_context)
 
-    def executeWithContext(self, step_tracker: StepTracker):
+    def execute_with_context(self, step_tracker: StepTracker):
         step_tracker.step = self
         while step_tracker.invocation_count == 0 or step_tracker.retry:
             step_tracker.invocation_count += 1
@@ -120,7 +120,7 @@ class QAFTestStep:
             if args:
                 name = re.sub(r'\((.*?)\)', lambda match: str(args.pop(0)), self.matcher.regex_pattern)
             if kwargs:
-                #name = self.description.format(**kwargs)
+                # name = self.description.format(**kwargs)
                 name = replace_groups(self.matcher.regex_pattern, name, **kwargs)
         except:
             pass
@@ -141,15 +141,15 @@ class QAFTestStep:
                                             for i in range(len(step_tracker.args))})
 
             argset = set(argSpec.args) - set(step_tracker.kwargs)
-            for argname in argset:  # check available pytest fixture to inject
-                if "context" == argname:
-                    step_tracker.kwargs[argname] = step_tracker.context
+            for arg_name in argset:  # check available pytest fixture to inject
+                if "context" == arg_name:
+                    step_tracker.kwargs[arg_name] = step_tracker.context
                 if hasattr(step_tracker.context, "session"):  # pytest request
                     fm = step_tracker.context.session._fixturemanager
-                    fdefs = fm.getfixturedefs(argname=argname, nodeid=step_tracker.context.node.nodeid)
+                    fdefs = fm.getfixturedefs(argname=arg_name, nodeid=step_tracker.context.node.nodeid)
                     if fdefs:
                         for fdef in fdefs:
-                            step_tracker.kwargs[argname] = step_tracker.context.node.ihook.pytest_fixture_setup(
+                            step_tracker.kwargs[arg_name] = step_tracker.context.node.ihook.pytest_fixture_setup(
                                 fixturedef=fdef,
                                 request=step_tracker.context)
                             break
@@ -158,7 +158,7 @@ class QAFTestStep:
 def replace_groups(pattern, string, replacements):
     pattern = re.compile(pattern)
     # create a dict of {group_index: group_name} for use later
-    groupnames = {index: name for name, index in pattern.groupindex.items()}
+    group_names = {index: name for name, index in pattern.groupindex.items()}
 
     def repl(match):
         # we have to split the matched text into chunks we want to keep and
@@ -166,20 +166,20 @@ def replace_groups(pattern, string, replacements):
         # captured text will be replaced. uncaptured text will be kept.
         text = match.group()
         chunks = []
-        lastindex = 0
+        last_index = 0
         for i in range(1, pattern.groups + 1):
-            groupname = groupnames.get(i)
-            if groupname not in replacements:
+            group_name = group_names.get(i)
+            if group_name not in replacements:
                 continue
 
             # keep the text between this match and the last
-            chunks.append(text[lastindex:match.start(i)])
+            chunks.append(text[last_index:match.start(i)])
             # then instead of the captured text, insert the replacement text for this group
-            chunks.append(replacements[groupname])
-            lastindex = match.end(i)
-        chunks.append(text[lastindex:])
+            chunks.append(replacements[group_name])
+            last_index = match.end(i)
+        chunks.append(text[last_index:])
         # join all the junks to obtain the final string with replacements
         return ''.join(chunks)
 
-    # for each occurence call our custom replacement function
+    # for each occurrence call our custom replacement function
     return re.sub(pattern, repl, string)

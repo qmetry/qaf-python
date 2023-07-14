@@ -33,7 +33,7 @@ def execute_step(bdd_step_call, testdata=None, is_dryrun_mode: bool = False, sho
         # if args_dict:
         #     step.executeWithContext(context, **args_dict)
         # else:
-        step.executeWithContext(execution_tracker)
+        step.execute_with_context(execution_tracker)
 
 
 def _gen_code_snipet(bdd_step):
