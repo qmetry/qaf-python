@@ -42,12 +42,12 @@ class CommandLogBean:
         self.__commandName = value
 
     @property
-    def args(self) -> dict:
+    def args(self) -> list:
         return self.__args
 
     @args.setter
-    def args(self, value: dict) -> None:
-        self.__args = value
+    def args(self, value: list) -> None:
+        self.__args = list(map(str, value)) if value else []
 
     @property
     def result(self) -> str:
@@ -55,7 +55,7 @@ class CommandLogBean:
 
     @result.setter
     def result(self, value: str) -> None:
-        self.__result = value
+        self.__result = str(value)
 
     @property
     def subLogs(self) -> list:
@@ -84,8 +84,8 @@ class CommandLogBean:
 
         _dict = {
             "commandName": self.commandName,
-            "args": list(map(str, self.args)),
-            "result": f'{self.result}',
+            "args": self.args,
+            "result": self.result,
             "subLogs": self.subLogs,
             "duration": self.duration,
         }

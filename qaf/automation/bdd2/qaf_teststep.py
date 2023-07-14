@@ -116,7 +116,7 @@ class QAFTestStep:
         name = self.description or self.name
         try:
             if kwargs:
-                return replace_groups(self.matcher.regex_pattern, name, kwargs)
+                return self.keyword + ' ' + replace_groups(self.matcher.regex_pattern, name, kwargs)
         except BaseException as e:
             pass
         return self.keyword + ' ' + name
