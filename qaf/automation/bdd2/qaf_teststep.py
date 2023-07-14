@@ -142,10 +142,10 @@ class QAFTestStep:
                 step_tracker.kwargs[argname] = step_tracker.context or step_tracker
             if hasattr(step_tracker.context, "session"):  # pytest request
                 fm = step_tracker.context.session._fixturemanager
-                fdefs = fm.getfixturedefs(argname=argname, nodeid=step_tracker.context.node.nodeid)
+                fdefs = fm.getfixturedefs(argname=argname, nodeid=step_tracker.context.nodeid)
                 if fdefs:
                     for fdef in fdefs:
-                        step_tracker.kwargs[argname] = step_tracker.context.node.ihook.pytest_fixture_setup(
+                        step_tracker.kwargs[argname] = step_tracker.context.ihook.pytest_fixture_setup(
                             fixturedef=fdef,
                             request=step_tracker.context)
                         break
