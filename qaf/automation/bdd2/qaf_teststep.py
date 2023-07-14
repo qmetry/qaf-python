@@ -47,10 +47,10 @@ class QAFTestStep:
         end_step(True if exc_type is None else False, None)
 
     def execute(self, *args, **kwargs):
-        step_run_context = StepTracker(name=self.name, args=[*args, ], kwargs=kwargs)
-        return self.executeWithContext(step_run_context)
+        step_run_context = StepTracker(name=self.name, args=[*args,], kwargs=kwargs)
+        return self.execute_with_context(step_run_context)
 
-    def executeWithContext(self, step_tracker: StepTracker):
+    def execute_with_context(self, step_tracker: StepTracker):
         step_tracker.step = self
         while step_tracker.invocation_count == 0 or step_tracker.retry:
             step_tracker.invocation_count += 1
