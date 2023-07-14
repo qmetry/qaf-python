@@ -5,6 +5,7 @@ from typing import Any
 
 from qaf.automation.core.test_base import start_step, end_step, get_test_context
 from qaf.automation.report.utils import step_status
+from qaf.automation.util.string_util import replace_groups
 from qaf.listeners import pluginmagager
 from qaf.pytest.pytest_utils import PyTestStatus
 
@@ -46,10 +47,10 @@ class QAFTestStep:
         end_step(True if exc_type is None else False, None)
 
     def execute(self, *args, **kwargs):
-        step_run_context = StepTracker(name=self.name, args=[*args,], kwargs=kwargs)
-        return self.execute_with_context(step_run_context)
+        step_run_context = StepTracker(name=self.name, args=[*args, ], kwargs=kwargs)
+        return self.executeWithContext(step_run_context)
 
-    def execute_with_context(self, step_tracker: StepTracker):
+    def executeWithContext(self, step_tracker: StepTracker):
         step_tracker.step = self
         while step_tracker.invocation_count == 0 or step_tracker.retry:
             step_tracker.invocation_count += 1
@@ -104,30 +105,19 @@ class QAFTestStep:
         if step_tracker.invocation_count == 1:
             self._prepare_args(step_tracker)
             if not step_tracker.display_name:
-                try:
-                    if step_tracker.args or step_tracker.kwargs:
-                        # step_run_context.step.args = [*args, ]
-                        step_tracker.display_name = self._formate_name(step_tracker.args, step_tracker.kwargs)
-                    else:
-                        step_tracker.display_name = self.description or self.name
-                except Exception as e:
-                    step_tracker.display_name = self.name
+                step_tracker.display_name = self._formate_name(step_tracker.kwargs)
             args_array = [step_tracker.actual_args]
             if step_tracker.actual_kwargs:
                 for key, value in step_tracker.actual_kwargs.items():
                     args_array.append(str(key) + ':' + str(value))
             start_step(self.name, step_tracker.display_name, args_array)
 
-    def _formate_name(self, args, kwargs):
+    def _formate_name(self, kwargs):
         name = self.description or self.name
         try:
-            if args:
-                values=[*args]
-                name = re.sub(r'\((.*?)\)', lambda match: str(values.pop(0)), self.matcher.regex_pattern)
             if kwargs:
-                name = self.description.format(**kwargs)
-                name = replace_groups(self.matcher.regex_pattern, name, **kwargs)
-        except:
+                return replace_groups(self.matcher.regex_pattern, name, kwargs)
+        except BaseException as e:
             pass
         return self.keyword + ' ' + name
 
@@ -138,8 +128,8 @@ class QAFTestStep:
 
         if len(step_tracker.args) + len(step_tracker.kwargs) != len(argSpec.args):
             if step_tracker.args:
-                context_pos = argSpec.args.index("context")
-                if context_pos >= 0 and context_pos < len(step_tracker.args) \
+                context_pos = argSpec.args.index("context") if "context" in argSpec.args else -1
+                if 0 <= context_pos < len(step_tracker.args) \
                         and type(step_tracker.args[context_pos]) != type(step_tracker.context):
                     step_tracker.args = []
                     step_tracker.args.extend(step_tracker.actual_args)
@@ -159,33 +149,3 @@ class QAFTestStep:
                             fixturedef=fdef,
                             request=step_tracker.context)
                         break
-
-
-def replace_groups(pattern, string, replacements):
-    pattern = re.compile(pattern)
-    # create a dict of {group_index: group_name} for use later
-    group_names = {index: name for name, index in pattern.groupindex.items()}
-
-    def repl(match):
-        # we have to split the matched text into chunks we want to keep and
-        # chunks we want to replace
-        # captured text will be replaced. uncaptured text will be kept.
-        text = match.group()
-        chunks = []
-        last_index = 0
-        for i in range(1, pattern.groups + 1):
-            group_name = group_names.get(i)
-            if group_name not in replacements:
-                continue
-
-            # keep the text between this match and the last
-            chunks.append(text[last_index:match.start(i)])
-            # then instead of the captured text, insert the replacement text for this group
-            chunks.append(replacements[group_name])
-            last_index = match.end(i)
-        chunks.append(text[last_index:])
-        # join all the junks to obtain the final string with replacements
-        return ''.join(chunks)
-
-    # for each occurrence call our custom replacement function
-    return re.sub(pattern, repl, string)

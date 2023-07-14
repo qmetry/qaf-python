@@ -46,6 +46,7 @@ def pytest_runtest_makereport(item, call):
 
     report_result(item)
     clear_assertions_log()
+    set_test_context(item)
     if report.when == "teardown":
         tear_down()
 

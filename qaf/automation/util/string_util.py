@@ -20,10 +20,10 @@
 #  SOFTWARE.
 
 import json
-import re
-from uuid import uuid4
 import random
+import re
 import unicodedata
+from uuid import uuid4
 
 # module settings
 __version__ = '0.6.0'
@@ -660,3 +660,49 @@ def decode_base64(string: str) -> str:
 def encode_base64(string: str) -> str:
     import base64
     return base64.b64encode(string.encode('utf-8'))
+
+
+def format_string(s: str, kv: dict) -> str:
+    import string
+    formatter = string.Formatter()
+    mapping = ResolverDict(**kv)
+    return formatter.vformat(s, (), mapping)
+
+
+def replace_groups(pattern: str, string: str, resolver) -> str:
+    """
+    Utility function to replaced named group in the pattern string
+    """
+    pattern = re.compile(pattern)
+    #resolver = ResolverDict(**replacements)
+    # create a dict of {group_index: group_name} for use later
+    groupnames = {index: name for name, index in pattern.groupindex.items()}
+
+    def repl(match):
+        # we have to split the matched text into chunks we want to keep and
+        # chunks we want to replace
+        # captured text will be replaced. uncaptured text will be kept.
+        text = match.group()
+        chunks = []
+        lastindex = 0
+        for i in range(1, pattern.groups + 1):
+            groupname = groupnames.get(i)
+            if groupname not in resolver:
+                continue
+
+            # keep the text between this match and the last
+            chunks.append(text[lastindex:match.start(i)])
+            # then instead of the captured text, insert the replacement text for this group
+            chunks.append(str(resolver[groupname]))
+            lastindex = match.end(i)
+        chunks.append(text[lastindex:])
+        # join all the junks to obtain the final string with replacements
+        return ''.join(chunks)
+
+    # for each occurence call our custom replacement function
+    return re.sub(pattern, repl, string)
+
+
+class ResolverDict(dict):
+    def __missing__(self, key):
+        return "{" + key + "}"

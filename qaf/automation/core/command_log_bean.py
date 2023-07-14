@@ -85,7 +85,7 @@ class CommandLogBean:
         _dict = {
             "commandName": self.commandName,
             "args": list(map(str, self.args)),
-            "result": self.result,
+            "result": f'{self.result}',
             "subLogs": self.subLogs,
             "duration": self.duration,
         }
