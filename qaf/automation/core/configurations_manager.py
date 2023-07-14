@@ -26,7 +26,7 @@ from typing import (
 
 from qaf.automation.core.singleton import Singleton
 from qaf.automation.keys.application_properties import ApplicationProperties as AP
-from qaf.automation.util.property_util import PropretyUtil
+from qaf.automation.util.property_util import PropertyUtil
 
 __all__ = [
     "expression", "get_bundle", "ConfigurationsManager"
@@ -39,7 +39,7 @@ class ConfigurationsManager(metaclass=Singleton):
     """
 
     def __init__(self):
-        self.__dict = PropretyUtil()
+        self.__dict = PropertyUtil()
         application_properties_path = os.path.join('resources', 'application.properties')
         if os.path.exists(application_properties_path):
             self.__dict.load(application_properties_path)

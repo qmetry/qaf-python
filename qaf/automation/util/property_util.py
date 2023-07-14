@@ -30,7 +30,7 @@ from simpleeval import NameNotDefined, EvalWithCompoundTypes
 from qaf.automation.util.string_util import to_boolean, decode_base64
 
 
-class PropretyUtil(dict):
+class PropertyUtil(dict):
     """
     @Author: Chirag Jayswal
 
@@ -43,7 +43,7 @@ class PropretyUtil(dict):
     """
 
     def __init__(self, *args, **kw):
-        super(PropretyUtil, self).__init__(*args, **kw)
+        super(PropertyUtil, self).__init__(*args, **kw)
         self.loading_resources = False
         self.resource_path = ""
         self.evaluator = EvalWithCompoundTypes()
@@ -155,7 +155,7 @@ class PropretyUtil(dict):
         return self.get(key, default)
 
     def __getitem__(self, key, default=None):
-        return super(PropretyUtil, self).__getitem__(key) if self.__contains__(key) else default
+        return super(PropertyUtil, self).__getitem__(key) if self.__contains__(key) else default
 
     def get(self, key: str, default=None):
         value = self.get_raw_value(key)
