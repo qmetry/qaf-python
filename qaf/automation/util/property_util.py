@@ -21,13 +21,11 @@
 
 import json
 import os
-import random
 import re
-import string
 
 from simpleeval import NameNotDefined, EvalWithCompoundTypes
 
-from qaf.automation.util.string_util import to_boolean, decode_base64
+from qaf.automation.util.string_util import to_boolean, decode_base64, rnd
 
 
 class PropertyUtil(dict):
@@ -64,10 +62,9 @@ class PropertyUtil(dict):
             elif os.path.isfile(each_resource_path):
                 # self.__load_files(each_resource_path)
                 self.__load_file(each_resource_path)
-        self.loading_resources = False # mark done
+        self.loading_resources = False  # mark done
         if self.resource_path != self.get_string("env.resources", self.resource_path):
             self.load(self.get_string("env.resources", self.resource_path))
-
 
     def __load_file(self, file):
         extension = os.path.splitext(file)[1]
@@ -146,10 +143,8 @@ class PropertyUtil(dict):
             d_val = decrypt(value)
             self.__setitem__(dkey, d_val)
         # do we need to reload resources?
-        if not (self.loading_resources or self.resource_path == self.get_string("env.resources",self.resource_path)):
+        if not (self.loading_resources or self.resource_path == self.get_string("env.resources", self.resource_path)):
             self.load(self.get_string("env.resources"))
-
-
 
     def get_property(self, key: str, default=None):
         return self.get(key, default)
@@ -166,7 +161,7 @@ class PropertyUtil(dict):
             self.set_property(key, default)
         return self.get(key)
 
-    def get_raw_value(self, key:str, default=None):
+    def get_raw_value(self, key: str, default=None):
         return self.__getitem__(key, default)
 
     def interpolate(self, rest, prefix, suffix, pattern, ext_dict=None):
@@ -203,7 +198,7 @@ class PropertyUtil(dict):
                         if sect == 'expr':
                             v = str(self._evalexpr(opt, ext_dict))
                         elif sect == 'rnd':
-                            v = self._rnd(opt)
+                            v = rnd(opt)
                         else:
                             v = ext_dict.get(opt, self.get(opt, prefix + opt + suffix))
                     accum.append(str(v))
@@ -224,18 +219,6 @@ class PropertyUtil(dict):
             value = self.interpolate(value, "${", "}", pattern, disc)
             return value
         return value
-
-    def _rnd(self, r_format):
-        res_string = ""
-        for char in r_format:
-            res = char
-            if char.isdigit():
-                res = random.choice(string.digits)
-            elif char.isalpha():
-                res = random.choice(string.ascii_lowercase) if char.islower() else random.choice(string.ascii_uppercase)
-
-            res_string += res
-        return res_string
 
     def _evalexpr(self, expr, vars):
         self.evaluator.names = vars if vars else {}

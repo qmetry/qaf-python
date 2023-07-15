@@ -662,6 +662,20 @@ def encode_base64(string: str) -> str:
     return base64.b64encode(string.encode('utf-8'))
 
 
+def rnd(r_format):
+    import string
+
+    res_string = ""
+    for char in r_format:
+        res = char
+        if char.isdigit():
+            res = random.choice(string.digits)
+        elif char.isalpha():
+            res = random.choice(string.ascii_lowercase) if char.islower() else random.choice(string.ascii_uppercase)
+
+        res_string += res
+    return res_string
+
 def format_string(s: str, kv: dict) -> str:
     import string
     formatter = string.Formatter()

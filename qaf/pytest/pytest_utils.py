@@ -52,6 +52,13 @@ class PyTestStatus(Enum):
         return enum_value
 
 
+def get_all_metadata(node):
+    markers = node.parent.own_markers if hasattr(node.parent,"own_markers") else []
+    if hasattr(node, "own_markers"):
+        markers.extend(node.own_markers)
+    return get_metadata(markers)
+
+
 def get_metadata(markers):
     metadata = {"groups": []}
     for marker in markers:
@@ -63,7 +70,7 @@ def get_metadata(markers):
                 if marker.name.lower() == "groups":
                     metadata["groups"] += list(marker.args)
                 else:
-                    metadata[marker.name]: marker.args
+                    metadata.update({marker.name: marker.args})
         else:
             metadata["groups"].append(marker.name)
     return metadata

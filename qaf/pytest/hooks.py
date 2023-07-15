@@ -9,7 +9,7 @@ from qaf.automation.core.test_base import is_verification_failed, get_bundle, \
 from qaf.automation.integration.result_updator import update_result
 from qaf.automation.integration.testcase_run_result import TestCaseRunResult
 from qaf.automation.keys.application_properties import ApplicationProperties
-from qaf.pytest.pytest_utils import PyTestStatus, get_metadata
+from qaf.pytest.pytest_utils import PyTestStatus, get_all_metadata
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -68,8 +68,7 @@ def report_result(node):
         testcase_run_result.starttime = int(report.start * 1000)
         testcase_run_result.endtime = int(report.stop * 1000)
 
-        metadata_from_markers = get_metadata(node.own_markers) \
-            if testcase_run_result.isTest and hasattr(node, "own_markers") else {}
+        metadata_from_markers = get_all_metadata(node) if testcase_run_result.isTest else {}
 
         testcase_run_result.metaData = {"name": name, "resultFileName": name,
                                         "reference": six.text_type(node.nodeid),
@@ -93,7 +92,10 @@ def report_result(node):
         if report.when == "setup" and not report.passed:
             # report test as skipped
             testcase_run_result_skip = deepcopy(testcase_run_result)
-            testcase_run_result_skip.metaData.update({"name": node.name, "resultFileName": node.name})
+            metadata_from_markers = get_all_metadata(node)
+            testcase_run_result_skip.metaData.update(
+                {"name": node.name, "resultFileName": node.name},
+                metadata_from_markers)
             testcase_run_result_skip.status = PyTestStatus.skipped.name
             testcase_run_result_skip.starttime = testcase_run_result_skip.endtime # just indicates when skipped!
             testcase_run_result_skip.isTest = True
