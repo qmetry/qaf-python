@@ -55,6 +55,9 @@ __all__ = [
     'to_boolean',
     'decode_base64',
     'encode_base64',
+    'replace_groups',
+    'rnd',
+    'format_string'
 ]
 
 # compiled regex

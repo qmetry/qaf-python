@@ -17,7 +17,7 @@ def execute_step(bdd_step_call, testdata=None, is_dryrun_mode: bool = False, sho
     if testdata is None:
         testdata = {}
     from qaf.automation.bdd2.model import Bdd2Step
-    bdd_step = Bdd2Step(bdd_step_call) if type(bdd_step_call) is str else bdd_step_call
+    bdd_step = Bdd2Step(name=bdd_step_call) if type(bdd_step_call) is str else bdd_step_call
     found, step, args_dict = _find_match(bdd_step.name, testdata)
     if not found:
         Reporter.error(f'{bdd_step.keyword} {bdd_step.name} :Step Not Found'.lstrip())
@@ -66,21 +66,15 @@ def _args_from_match(match):
     args_dict = {}
     for arg in args:
         args_dict[arg.name] = arg.value.strip("'")
-
-    for var in argSpec.args:
-        if var not in args_dict:
-            # FullArgSpec(args=['v1', 'v2'], varargs=None, varkw=None, defaults=None, kwonlyargs=[], kwonlydefaults=None, annotations={'v1': <class 'int'>, 'v2': <class 'str'>})
-            # TODO: check for vars to inject, if type specified it will be available in annotations
-            # args_dict.update({var: None})
-            args_dict[var] = None
     return args_dict
 
 
-def _get_declaring_class(func):
-    try:
-        for cls in inspect.getmro(func.im_class):
-            if func.__name__ in cls.__dict__:
-                return cls
-    except:
-        pass
-    return None
+def factory(fixture_name):
+    """
+    Used to specify fixture to provide class instance when class has step definitions.
+    """
+    def decorator(cls):
+        setattr(cls, "fixture_name", fixture_name)
+        return cls
+
+    return decorator

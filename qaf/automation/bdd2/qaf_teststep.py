@@ -5,6 +5,7 @@ from typing import Any
 
 from qaf.automation.core.test_base import start_step, end_step, get_test_context
 from qaf.automation.report.utils import step_status
+from qaf.automation.util.class_util import get_func_declaring_class, get_class
 from qaf.automation.util.string_util import replace_groups
 from qaf.listeners import pluginmagager
 from qaf.pytest.pytest_utils import PyTestStatus
@@ -47,7 +48,7 @@ class QAFTestStep:
         end_step(True if exc_type is None else False, None)
 
     def execute(self, *args, **kwargs):
-        step_run_context = StepTracker(name=self.name, args=[*args,], kwargs=kwargs)
+        step_run_context = StepTracker(name=self.name, args=[*args, ], kwargs=kwargs)
         return self.execute_with_context(step_run_context)
 
     def execute_with_context(self, step_tracker: StepTracker):
@@ -128,9 +129,9 @@ class QAFTestStep:
 
         if len(step_tracker.args) + len(step_tracker.kwargs) != len(argSpec.args):
             if step_tracker.args:
-                context_pos = argSpec.args.index("context") if "context" in argSpec.args else -1
-                if 0 <= context_pos < len(step_tracker.args) \
-                        and type(step_tracker.args[context_pos]) != type(step_tracker.context):
+                context_pos = argSpec.args.index("context") \
+                    if "context" in argSpec.args and "context" not in step_tracker.kwargs else -1
+                if 0 <= context_pos < len(step_tracker.args):
                     step_tracker.args = []
                     step_tracker.args.extend(step_tracker.actual_args)
                     step_tracker.args.insert(context_pos, step_tracker.context or step_tracker)
@@ -138,14 +139,26 @@ class QAFTestStep:
 
         argset = set(argSpec.args) - set(step_tracker.kwargs)
         for argname in argset:  # check available pytest fixture to inject
+            if "self" == argname:
+                cls_qualname = get_func_declaring_class(self.func)
+                cls = get_class(cls_qualname)
+                if cls is None:
+                    instance = None
+                if hasattr(cls, "fixture_name") and cls.fixture_name:
+                    instance = _get_val_from_fixture(getattr(cls, "fixture_name"),step_tracker.context)
+                else:
+                    instance = cls()
+                step_tracker.kwargs[argname] = instance
+                continue
             if "context" == argname:
                 step_tracker.kwargs[argname] = step_tracker.context or step_tracker
-            if hasattr(step_tracker.context, "session"):  # pytest request
-                fm = step_tracker.context.session._fixturemanager
-                fdefs = fm.getfixturedefs(argname=argname, nodeid=step_tracker.context.nodeid)
-                if fdefs:
-                    for fdef in fdefs:
-                        step_tracker.kwargs[argname] = step_tracker.context.ihook.pytest_fixture_setup(
-                            fixturedef=fdef,
-                            request=step_tracker.context)
-                        break
+                continue
+            step_tracker.kwargs[argname] = _get_val_from_fixture(argname, step_tracker.context)
+
+
+def _get_val_from_fixture(argname, requestor):
+    if hasattr(requestor, "session"):  # pytest request
+        from _pytest import fixtures
+        _request = fixtures.FixtureRequest(requestor, _ispytest=False)
+        return _request.getfixturevalue(argname)
+    return None
