@@ -1,6 +1,6 @@
-import inspect
 import re
 from dataclasses import dataclass
+from inspect import getfullargspec
 from typing import Any
 
 from qaf.automation.core.test_base import start_step, end_step, get_test_context
@@ -124,37 +124,12 @@ class QAFTestStep:
         return self.keyword + ' ' + name
 
     def _prepare_args(self, step_tracker: StepTracker):
-        argSpec = inspect.getfullargspec(self.func)
         step_tracker.actual_args = list(step_tracker.args)
         step_tracker.actual_kwargs = step_tracker.kwargs.copy()
 
-        if len(step_tracker.args) + len(step_tracker.kwargs) != len(argSpec.args):
-            if step_tracker.args:
-                context_pos = argSpec.args.index("context") \
-                    if "context" in argSpec.args and "context" not in step_tracker.kwargs else -1
-                if 0 <= context_pos < len(step_tracker.args):
-                    step_tracker.args = []
-                    step_tracker.args.extend(step_tracker.actual_args)
-                    step_tracker.args.insert(context_pos, step_tracker.context or step_tracker)
-        step_tracker.kwargs.update({argSpec.args[i]: step_tracker.args.pop(0) for i in range(len(step_tracker.args))})
-
-        argset = set(argSpec.args) - set(step_tracker.kwargs)
-        for argname in argset:  # check available pytest fixture to inject
-            if "self" == argname:
-                cls_qualname = get_func_declaring_class(self.func)
-                cls = get_class(cls_qualname)
-                if cls is None:
-                    instance = None
-                if hasattr(cls, "fixture_name") and cls.fixture_name:
-                    instance = _get_val_from_fixture(getattr(cls, "fixture_name"),step_tracker.context)
-                else:
-                    instance = cls()
-                step_tracker.kwargs[argname] = instance
-                continue
-            if "context" == argname:
-                step_tracker.kwargs[argname] = step_tracker.context or step_tracker
-                continue
-            step_tracker.kwargs[argname] = _get_val_from_fixture(argname, step_tracker.context)
+        step_tracker.kwargs = _getcallargs(self.func, *step_tracker.args, **step_tracker.kwargs)
+        step_tracker.args = []
+        # step_tracker.kwargs.update({argSpec.args[i]: step_tracker.args.pop(0) for i in range(len(step_tracker.args))})
 
 
 def _get_val_from_fixture(argname, requestor):
@@ -163,3 +138,85 @@ def _get_val_from_fixture(argname, requestor):
         _request = fixtures.FixtureRequest(requestor, _ispytest=False)
         return _request.getfixturevalue(argname)
     return None
+
+
+def _getcallargs(func, /, *positional, **named):
+    """Get the mapping of arguments to values.
+
+    A dict is returned, with keys the function argument names (including the
+    names of the * and ** arguments, if any), and values the respective bound
+    values from 'positional' and 'named'."""
+    spec = getfullargspec(func)
+    args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, ann = spec
+    f_name = func.__name__
+    arg2value = {}
+
+    if args[0] == "self" and not positional:
+        # if not positional or not  hasattr(positional[0],f_name):
+        instance = _get_missing_arg("self", func)
+        # implicit 'self' (or 'cls' for classmethods) argument
+        positional = (instance,) + positional
+    num_pos = len(positional)
+    num_args = len(args)
+    if "context" in args and num_pos + len(named) < num_args:
+        pos = args.index("context")
+        val = _get_missing_arg("context", func)
+        positional = positional[:pos] + (val,) + positional[pos:]
+        num_pos = len(positional)
+
+    num_defaults = len(defaults) if defaults else 0
+
+    n = min(num_pos, num_args)
+    for i in range(n):
+        arg2value[args[i]] = positional[i]
+    if varargs:
+        arg2value[varargs] = tuple(positional[n:])
+    possible_kwargs = set(args + kwonlyargs)
+    if varkw:
+        arg2value[varkw] = {}
+    for kw, value in named.items():
+        if kw not in possible_kwargs:
+            if not varkw:
+                raise TypeError("%s() got an unexpected keyword argument %r" %
+                                (f_name, kw))
+            arg2value[varkw][kw] = value
+            continue
+        if kw in arg2value:
+            raise TypeError("%s() got multiple values for argument %r" %
+                            (f_name, kw))
+        arg2value[kw] = value
+    # if num_pos > num_args and not varargs:
+    # do nothing let actual call fail with to many argument error
+    if num_pos < num_args:
+        req = args[:num_args - num_defaults]
+        for arg in req:
+            if arg not in arg2value:
+                arg2value[arg] = _get_missing_arg(arg, func)
+        for i, arg in enumerate(args[num_args - num_defaults:]):
+            if arg not in arg2value:
+                arg2value[arg] = defaults[i]
+    for kwarg in kwonlyargs:
+        if kwarg not in arg2value:
+            if kwonlydefaults and kwarg in kwonlydefaults:
+                arg2value[kwarg] = kwonlydefaults[kwarg]
+            else:
+                arg2value[kwarg] = _get_missing_arg(kwarg, func)
+
+    return arg2value
+
+
+def _get_missing_arg(argname, func):
+    if "self" == argname:
+        cls_qualname = get_func_declaring_class(func)
+        cls = get_class(cls_qualname)
+        if cls is None:
+            instance = None
+        if hasattr(cls, "fixture_name") and cls.fixture_name:
+            instance = _get_val_from_fixture(getattr(cls, "fixture_name"), get_test_context())
+        else:
+            instance = cls()
+        return instance
+    if "context" == argname:
+        return get_test_context()
+
+    return _get_val_from_fixture(argname, get_test_context())
