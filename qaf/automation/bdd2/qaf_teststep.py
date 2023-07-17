@@ -55,6 +55,7 @@ class QAFTestStep:
         step_tracker.step = self
         while step_tracker.invocation_count == 0 or step_tracker.retry:
             step_tracker.invocation_count += 1
+            step_tracker.description = self.description
             self.before_step(step_tracker)
             step_tracker.status = PyTestStatus.executing
             step_tracker.retry = False  # reset
