@@ -4,6 +4,7 @@ from inspect import getfullargspec
 from typing import Any
 
 from qaf.automation.core.test_base import start_step, end_step, get_test_context
+from qaf.automation.keys import SESSION, FIXTURE_NAME, CONTEXT, FIXTURE
 from qaf.automation.report.utils import step_status
 from qaf.automation.util.class_util import get_func_declaring_class, get_class
 from qaf.automation.util.string_util import replace_groups
@@ -16,6 +17,7 @@ class StepTracker:
     args: list[Any]
     kwargs: dict
     name: str
+    metadata: dict
     display_name: str = ""
     dryrun: bool = False
     result: Any = None
@@ -28,7 +30,7 @@ class StepTracker:
 
 class QAFTestStep:
 
-    def __init__(self, description="", func: callable = None, keyword: str = "Step"):
+    def __init__(self, description="", func: callable = None, keyword: str = "Step", **kwargs):
         if func:
             self.func = func
             self.name = func.__name__
@@ -37,6 +39,8 @@ class QAFTestStep:
             self.description = description
             self.name = self.description  # inline step
         self.keyword = keyword
+        self.metadata = {**kwargs}
+
 
     def __enter__(self):  # inline step with Given/When/Then/Step/And(step description):
         # plugin_manager.hook.start_step(uuid=self.uuid, name=self.name, description=self.description)
@@ -48,7 +52,7 @@ class QAFTestStep:
         end_step(True if exc_type is None else False, None)
 
     def execute(self, *args, **kwargs):
-        step_run_context = StepTracker(name=self.name, args=[*args, ], kwargs=kwargs)
+        step_run_context = StepTracker(name=self.name, args=[*args, ], kwargs=kwargs, metadata=self.metadata)
         return self.execute_with_context(step_run_context)
 
     def execute_with_context(self, step_tracker: StepTracker):
@@ -77,6 +81,7 @@ class QAFTestStep:
     def __call__(self, *args, **kwargs):
         if args and callable(args[0]):
             self._decorate(args[0])
+            self.metadata = {**kwargs}
             return self
         return self.execute(*args, **kwargs)
 
@@ -133,7 +138,9 @@ class QAFTestStep:
 
 
 def _get_val_from_fixture(argname, requestor):
-    if hasattr(requestor, "session"):  # pytest request
+    if hasattr(requestor, SESSION):  # pytest request
+        if argname == SESSION:
+            return requestor.session
         from _pytest import fixtures
         _request = fixtures.FixtureRequest(requestor, _ispytest=False)
         return _request.getfixturevalue(argname)
@@ -158,9 +165,9 @@ def _getcallargs(func, /, *positional, **named):
         positional = (instance,) + positional
     num_pos = len(positional)
     num_args = len(args)
-    if "context" in args and num_pos + len(named) < num_args:
-        pos = args.index("context")
-        val = _get_missing_arg("context", func)
+    if CONTEXT in args and num_pos + len(named) < num_args:
+        pos = args.index(CONTEXT)
+        val = _get_missing_arg(CONTEXT, func)
         positional = positional[:pos] + (val,) + positional[pos:]
         num_pos = len(positional)
 
@@ -194,7 +201,9 @@ def _getcallargs(func, /, *positional, **named):
                 arg2value[arg] = _get_missing_arg(arg, func)
         for i, arg in enumerate(args[num_args - num_defaults:]):
             if arg not in arg2value:
-                arg2value[arg] = defaults[i]
+                arg2value[arg] = _get_missing_arg(arg, func) \
+                    if defaults[i] == FIXTURE \
+                    else defaults[i]
     for kwarg in kwonlyargs:
         if kwarg not in arg2value:
             if kwonlydefaults and kwarg in kwonlydefaults:
@@ -211,12 +220,12 @@ def _get_missing_arg(argname, func):
         cls = get_class(cls_qualname)
         if cls is None:
             instance = None
-        if hasattr(cls, "fixture_name") and cls.fixture_name:
-            instance = _get_val_from_fixture(getattr(cls, "fixture_name"), get_test_context())
+        if hasattr(cls, FIXTURE_NAME) and cls.fixture_name:
+            instance = _get_val_from_fixture(getattr(cls, FIXTURE_NAME), get_test_context())
         else:
             instance = cls()
         return instance
-    if "context" == argname:
+    if CONTEXT == argname:
         return get_test_context()
 
     return _get_val_from_fixture(argname, get_test_context())

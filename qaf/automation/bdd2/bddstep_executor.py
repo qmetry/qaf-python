@@ -6,6 +6,7 @@ from qaf.automation.bdd2.step_registry import step_registry
 from qaf.automation.core.message_type import MessageType
 from qaf.automation.core.qaf_exceptions import StepNotFound
 from qaf.automation.core.reporter import Reporter
+from qaf.automation.keys import FIXTURE_NAME
 
 """
 @author: Chirag Jayswal
@@ -27,7 +28,7 @@ def execute_step(bdd_step_call, testdata=None, is_dryrun_mode: bool = False, sho
         Reporter.log(f'{bdd_step.keyword} {bdd_step.name}'.lstrip(), MessageType.TestStep)
     else:
         execution_tracker = StepTracker(name=bdd_step.name, display_name=f'{bdd_step.keyword} {bdd_step.name}'.lstrip(),
-                                        dryrun=is_dryrun_mode, args=[], kwargs=args_dict)
+                                        dryrun=is_dryrun_mode, args=[], kwargs=args_dict, metadata=step.metadata)
         execution_tracker.call = bdd_step
         bdd_step.stepTracker = execution_tracker
         # if args_dict:
@@ -74,7 +75,7 @@ def factory(fixture_name):
     Used to specify fixture to provide class instance when class has step definitions.
     """
     def decorator(cls):
-        setattr(cls, "fixture_name", fixture_name)
+        setattr(cls, FIXTURE_NAME, fixture_name)
         return cls
 
     return decorator

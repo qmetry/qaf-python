@@ -23,6 +23,8 @@ from enum import Enum
 
 import six
 
+from qaf.automation.core.test_base import get_test_context
+
 
 def del_all_attr(obj):
     for name in inspect.getmembers(obj):
@@ -53,10 +55,22 @@ class PyTestStatus(Enum):
 
 
 def get_all_metadata(node):
-    markers = node.parent.own_markers if hasattr(node.parent,"own_markers") else []
+    if hasattr(node, "metadata"):
+        return node.metadata
+    markers = node.parent.own_markers if hasattr(node.parent, "own_markers") else []
     if hasattr(node, "own_markers"):
         markers.extend(node.own_markers)
-    return get_metadata(markers)
+    node.metadata = get_metadata(markers)
+    return node.metadata
+
+
+def add_metadata(**kwargs):
+    """
+    add metadata to current testcase at runtime. Useful to link cloud session, video etc...
+    """
+    node = get_test_context()
+    if node is not None:
+        get_all_metadata(node).update(**kwargs)
 
 
 def get_metadata(markers):
