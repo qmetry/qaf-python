@@ -148,16 +148,17 @@ def is_verification_failed() -> bool:
     return get_verification_errors() > 0
 
 
-def start_step(step_name, display_name, args=None):
+def start_step(step_name, display_name, args=None, threshold=0):
     if args is None:
         args = []
-    current_step = _get_cur_step()
-    _ = _StepLogger(step_name, display_name, current_step, args)
-    return get_test_context()
+    parent = _get_step_logger()
+    current_step = _StepLogger(step_name, display_name, parent, args)
+    current_step.checkpoint.threshold = threshold
+    return current_step
 
 
 def end_step(status: bool, result=None):
-    current_step = _get_cur_step()
+    current_step = _get_step_logger()
     success = current_step.checkpoint.is_success()
     current_step.set_status(False if not success else status, result)
     if "last_captured_screenshot" in context():
@@ -168,11 +169,10 @@ def end_step(status: bool, result=None):
         if "last_captured_screenshot" in context():
             current_step.checkpoint.screenshot = context().pop("last_captured_screenshot")
     _set_cur_step(current_step.get_parent())
-    # del current_step
 
 
 def add_command(log: CommandLogBean) -> None:
-    _get_cur_step().add_log(log)
+    _get_step_logger().add_log(log)
 
 
 def add_checkpoint(checkpoint: CheckPointBean) -> None:
@@ -181,10 +181,10 @@ def add_checkpoint(checkpoint: CheckPointBean) -> None:
         context()[QAF_VERIFICATION_ERRORS_KEY] = verification_errors
         if not checkpoint.screenshot:
             checkpoint.screenshot = take_screenshot()
-    _get_cur_step().add_checkpoint(checkpoint)
+    _get_step_logger().add_checkpoint(checkpoint)
 
 
-def _get_cur_step():
+def _get_step_logger():
     if "_current_step" in context():
         return context()["_current_step"]
     else:

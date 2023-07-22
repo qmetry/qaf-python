@@ -81,7 +81,6 @@ class QAFTestStep:
     def __call__(self, *args, **kwargs):
         if args and callable(args[0]):
             self._decorate(args[0])
-            self.metadata = {**kwargs}
             return self
         return self.execute(*args, **kwargs)
 
@@ -117,7 +116,7 @@ class QAFTestStep:
             if step_tracker.actual_kwargs:
                 for key, value in step_tracker.actual_kwargs.items():
                     args_array.append(str(key) + ':' + str(value))
-            start_step(self.name, step_tracker.display_name, args_array)
+            start_step(self.name, step_tracker.display_name, args_array, step_tracker.metadata.get("threshold",0))
 
     def _formate_name(self, kwargs):
         name = self.description or self.name
