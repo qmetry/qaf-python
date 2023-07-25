@@ -62,7 +62,7 @@ def report_result(node):
 
     # no need to report setup/teardown if nothing done
     if testcase_run_result.isTest or testcase_run_result.checkPoints or not report.passed:
-        name = node.name if testcase_run_result.isTest else f'{report.when}-{node.name}'
+        name = node.name if testcase_run_result.isTest else f'{node.name}::{report.when}'
         testcase_run_result.className = _get_class_name(node)
         testcase_run_result.commandLogs = deepcopy(get_command_logs())
         testcase_run_result.starttime = int(report.start * 1000)
