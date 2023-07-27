@@ -85,7 +85,7 @@ def __start_webdriver(driver_name, is_remote_driver=False):
             class_name = 'selenium.webdriver.{driver_name}.webdriver.WebDriver'.format(driver_name=driver_name)
             __under_laying_driver = load_class(class_name)(service=service, options=options)
     CM.get_bundle().set_property("driverCapabilities", __under_laying_driver.capabilities)
-    return qafwebdriver.QAFWebDriver(__under_laying_driver)
+    return qafwebdriver.QAFWebDriver(__under_laying_driver, options=options)
 
 
 def get_desired_capabilities(driver_name: str) -> dict:

@@ -19,11 +19,12 @@
 #  SOFTWARE.
 
 import logging
+import re
 import sys
 
+from qaf.automation.core import get_bundle
 from qaf.automation.core.command_log_bean import CommandLogBean
 from qaf.automation.core.test_base import add_command
-# from qaf.automation.formatter.qaf_report.scenario.command_log import CommandLog, CommandLogStack
 from qaf.automation.ui.webdriver.abstract_listener import DriverListener
 from qaf.automation.ui.webdriver.command_tracker import CommandTracker
 
@@ -66,6 +67,16 @@ class QAFWebDriverListener(DriverListener):
         from qaf import pluginmagager
 
         pluginmagager.hook.before_driver_command(driver=driver, command_tracker=command_tracker)
+
+        if command_tracker.command.lower() == "get":
+            url = command_tracker.parameters.get("url")
+            if not re.match(r'^((?:http|ftp)s?|file)://', url):
+                base_url = get_bundle().get_string("env.baseurl","")
+                if base_url.endswith("/") :
+                    base_url = base_url[:-1]
+                if url.startswith("/"):
+                    url = url[1:]
+                command_tracker.parameters.update({"url":f'{base_url}/{url}'})
 
         self.__logger.info('Executing ' + command_tracker.command +
                            ' Parameters: ' + str(command_tracker.parameters))

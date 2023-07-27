@@ -40,18 +40,14 @@ from qaf.automation.ui.webdriver.qaf_webdriver_listener import QAFWebDriverListe
 
 class QAFWebDriver(RemoteWebDriver):
 
-    def __init__(self, under_laying_driver, browser_profile=None, proxy=None,
-                 keep_alive=False, file_detector=None, options=None):
+    def __init__(self, under_laying_driver, options=None):
         self.__under_laying_driver = under_laying_driver
         self.w3c = False
 
         self.__listeners = []
         self.__listeners.append(QAFWebDriverListener())
 
-        RemoteWebDriver.__init__(self, command_executor=under_laying_driver.command_executor,
-                                 browser_profile=browser_profile,
-                                 proxy=proxy,
-                                 file_detector=file_detector, options=options)
+        RemoteWebDriver.__init__(self, command_executor=under_laying_driver.command_executor, options=options)
 
         if CM().contains_key(AP.WEBDRIVER_COMMAND_LISTENERS):
             class_name = CM().get_str_for_key(AP.WEBDRIVER_COMMAND_LISTENERS)
