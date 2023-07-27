@@ -92,10 +92,8 @@ def report_result(node):
         if report.when == "setup" and not report.passed:
             # report test as skipped
             testcase_run_result_skip = deepcopy(testcase_run_result)
-            metadata_from_markers = get_all_metadata(node)
             testcase_run_result_skip.metaData.update(
-                {"name": node.name, "resultFileName": node.name},
-                metadata_from_markers)
+                {"name": node.name, "resultFileName": node.name})
             testcase_run_result_skip.status = PyTestStatus.skipped.name
             testcase_run_result_skip.starttime = testcase_run_result_skip.endtime # just indicates when skipped!
             testcase_run_result_skip.isTest = True

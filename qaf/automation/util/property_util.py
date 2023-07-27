@@ -169,7 +169,7 @@ class PropertyUtil(dict):
             ext_dict = {}
         accum = []
         while rest:
-            p = rest.find(prefix[0])
+            p = rest.find(prefix)
             if p < 0:
                 accum.append(rest)
                 return ''.join(accum)

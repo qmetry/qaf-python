@@ -16,8 +16,6 @@ __all__ = [
 from qaf.automation.core import get_bundle
 from qaf.automation.keys.application_properties import ApplicationProperties
 
-from qaf.automation.bdd2.bdd_keywords import STEP_TYPES
-
 
 class StepRegistry:
     def __init__(self):
@@ -104,6 +102,8 @@ def load_step_modules(step_paths):
 # pylint: disable=redefined-outer-name
 def setup_step_decorators(run_context=None):
     from qaf.automation.bdd2.qaf_teststep import QAFTestStep
+    from qaf.automation.bdd2.bdd_keywords import STEP_TYPES
+
     if run_context is None:
         run_context = globals()
     for step_type in STEP_TYPES:
