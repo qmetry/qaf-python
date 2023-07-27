@@ -58,14 +58,14 @@ setup(name='qaf-python',
           'qaf.automation': ['config/*.ini']
       },
       install_requires=[
-          'selenium~=4.9.1',
-          'Appium-Python-Client~=2.10.1',
-          'behave~=1.2.6',
-          'PyHamcrest~=1.9.0',
-          'requests~=2.31.0',
-          'jmespath~=1.0.0',
-          'webdriver-manager~=3.8.6',
-          'simpleeval==0.9.13',
+          'selenium>=4.9.1',
+          'Appium-Python-Client>=2.10.1',
+          'behave>=1.2.6',
+          'PyHamcrest>=1.9.0',
+          'requests>=2.31.0',
+          'jmespath>=1.0',
+          'webdriver-manager',
+          'simpleeval>=0.9.13',
           'pytest~=7.3.1'
       ],
       zip_safe=False)
