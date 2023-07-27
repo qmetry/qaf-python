@@ -157,7 +157,7 @@ def _getcallargs(func, /, *positional, **named):
     f_name = func.__name__
     arg2value = {}
 
-    if args[0] == "self" and not positional:
+    if args and args[0] == "self" and not positional:
         # if not positional or not  hasattr(positional[0],f_name):
         instance = _get_missing_arg("self", func)
         # implicit 'self' (or 'cls' for classmethods) argument
