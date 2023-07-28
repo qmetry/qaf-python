@@ -77,7 +77,8 @@ class DynamicWait(Generic[T]):
                 value = method(self._inject)
                 if value is not None:
                     if type(value) is bool:
-                        return value
+                        if value:
+                            return value
                     elif value[0]:
                         return value[0], value[1]
             except self._ignored_exceptions as exc:
