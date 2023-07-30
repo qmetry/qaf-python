@@ -26,4 +26,5 @@ def get_func_declaring_class(func: callable) -> str:
     cls = func.__qualname__.rsplit('.', 1)[0]
     if cls == func.__name__: return None  # not declared in class
     if module == 'builtins': module = ''
-    return '.'.join([module, cls]).strip('.')
+    return '.'.join([module, cls]).strip('.') if module else None
+

@@ -133,10 +133,11 @@ class Bdd2Background(Bdd2StepCollection, SupportsBdd2Metadata): ...
 @dataclass
 class Bdd2StepDefinition(Bdd2StepCollection, SupportsBdd2Metadata):
     def __call__(self, *args, **kwargs):
-        self.execute(testdata=kwargs)
+        return self.execute(testdata=kwargs.get("kwargs",kwargs))
 
 
 @dataclass
 class Bdd2Feature(Bdd2Node, SupportsBdd2Metadata):
+    path: str=""
     backgrounds: list[Bdd2Background] = field(default_factory=list)
     scenarios: list[Bdd2Scenario] = field(default_factory=list)

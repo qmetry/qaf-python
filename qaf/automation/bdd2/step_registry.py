@@ -4,7 +4,8 @@ import inspect
 import os
 from functools import partial
 
-from behave.matchers import Match, get_matcher
+from behave.matchers import Match, get_matcher, MatchWithError
+from behave.model_core import FileLocation
 from behave.textutil import text as _text
 
 # pylint: disable=undefined-all-variable
@@ -34,7 +35,11 @@ class StepRegistry:
             # registry.add_step_definition("step", step.description, step.func)
             behave_step(step.description)(step.func)
         else:
-            step_location = Match.make_location(step.func)
+            from qaf.automation.bdd2.model import Bdd2StepDefinition
+            if type(step.func) == Bdd2StepDefinition:
+                step_location = FileLocation(step.func.parent.path, step.func.lineNo)
+            else:
+                step_location = Match.make_location(step.func)
             step_text = _text(step.description)
             # set matcher even regardless of existing or new for direct method call or when not using bdd
             step.matcher = get_matcher(step.func, step_text)
@@ -49,7 +54,7 @@ class StepRegistry:
     def lookup(self, step):
         step_name = step if type(step) is str else step.name
         for step_definition in self.registry:
-            match = step_definition.matcher.match(step_name)
+            match = check_match(step_definition, step_name)
             if match:
                 return step_definition, match
         return None, None
@@ -59,6 +64,25 @@ class StepRegistry:
         return (matcher.pattern == other_pattern and
                 matcher.location == other_location and
                 other_location.filename != "<string>")
+
+
+def check_match(step_definition, step):
+    try:
+        result = step_definition.matcher.check_match(step)
+    except Exception as e:  # pylint: disable=broad-except
+        return MatchWithError(step_definition.func, e)
+
+    if result is None:
+        return None  # -- NO-MATCH
+
+    from qaf.automation.bdd2.model import Bdd2StepDefinition
+    if type(step_definition.func) == Bdd2StepDefinition:
+        match = Match(None, result)
+        match.location = FileLocation(step_definition.func.parent.path, step_definition.func.lineNo)
+        match.func = step_definition.func
+    else:
+        match = Match(step_definition.func, result)
+    return match
 
 
 def void_context(step):

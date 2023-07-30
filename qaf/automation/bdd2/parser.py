@@ -6,7 +6,7 @@ from typing import TypeVar
 from qaf.automation.bdd2.bdd_keywords import *
 from qaf.automation.bdd2.bdd_keywords import TAG, SCENARIO_OUTLINE
 from qaf.automation.bdd2.model import SupportsBdd2DataTable, Bdd2Scenario, Bdd2Background, Bdd2Examples, \
-    Bdd2MultiLineComment, Bdd2Feature, Bdd2Step, Bdd2StepDefinition
+    Bdd2MultiLineComment, Bdd2Feature, Bdd2Step, Bdd2StepDefinition, Bdd2StepCollection
 from qaf.automation.bdd2.qaf_teststep import QAFTestStep
 from qaf.automation.core import get_bundle
 from qaf.automation.core.qaf_exceptions import ParseError
@@ -77,10 +77,10 @@ class BDD2MultilineCommentCollector(BDD2StatementCollector):
 
 @dataclass
 class BDD2ScenarioCollector(BDD2StatementCollector):
-    scenario: Bdd2Scenario
+    scenario: Bdd2StepCollection
 
     def collect(self, stmt: str, line_no: int, _type: str) -> BDD2StatementCollector:
-        if _is_step(stmt): #set parent at the time of execution to clone to avoid deepcopy cycling
+        if not _type and _is_step(stmt): #set parent at the time of execution to clone to avoid deepcopy cycling
             self.scenario.steps.append(Bdd2Step(name=stmt, lineNo=line_no, parent=None))
             return self
         if EXAMPLES.lower() == _type.lower():
@@ -124,13 +124,16 @@ class FeatureCollector(BDD2StatementCollector):
             self.feature.lineNo = line_no
             return self
         if SCENARIO.lower() in _type.lower():
-            scenario = Bdd2Scenario(parent=self.feature, name=stmt.split(":", 1)[1].strip(),
-                                    lineNo=line_no,
-                                    metadata=deepcopy(self.feature.metadata) | deepcopy(
-                                        self.metadata_collector.metadata))
-            self.metadata_collector.metadata.clear()
-            self.feature.scenarios.append(scenario)
-            return BDD2ScenarioCollector(parent=self, scenario=scenario)
+            if "groups" in self.metadata_collector.metadata and "step" in self.metadata_collector.metadata["groups"]:
+                _type = STEP_DEF
+            else:
+                scenario = Bdd2Scenario(parent=self.feature, name=stmt.split(":", 1)[1].strip(),
+                                        lineNo=line_no,
+                                        metadata=deepcopy(self.feature.metadata) | deepcopy(
+                                            self.metadata_collector.metadata))
+                self.metadata_collector.metadata.clear()
+                self.feature.scenarios.append(scenario)
+                return BDD2ScenarioCollector(parent=self, scenario=scenario)
         if STEP_DEF.lower() == _type.lower():
             step_def = Bdd2StepDefinition(parent=self.feature, name=stmt.split(":", 1)[1].strip(),
                                           lineNo=line_no,
@@ -138,8 +141,8 @@ class FeatureCollector(BDD2StatementCollector):
                                               self.metadata_collector.metadata))
             self.metadata_collector.metadata.clear()
             # self.feature.scenarios.append(scenario)
-            QAFTestStep(step_def)(func=step_def)
-            return BDD2ScenarioCollector(parent=self, scenario=Bdd2StepDefinition)
+            QAFTestStep(step_def.name)(step_def)
+            return BDD2ScenarioCollector(parent=self, scenario=step_def)
         if BACKGROUND.lower() == _type.lower():
             background = Bdd2Background(parent=self.feature, name=stmt.split(":", 1)[1].strip(),
                                         lineNo=line_no)
@@ -168,7 +171,7 @@ class FeatureCollector(BDD2StatementCollector):
 
 
 def parse(path):
-    feature = Bdd2Feature()
+    feature = Bdd2Feature(path=path)
     with open(path) as fp:
         collector = FeatureCollector(None, feature=feature)
         for line_number, line in enumerate(fp):

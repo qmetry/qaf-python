@@ -92,7 +92,7 @@ class QAFTestStep:
         from qaf.automation.bdd2.step_registry import step_registry
         self.func = func
         self.func.wrapper = self
-        self.name = func.__name__
+        self.name = func.name if hasattr(func,"name") else func.__name__
         self.description = self.description or self.name
         step_registry.register_step(self)
 
@@ -154,14 +154,19 @@ def _getcallargs(func, /, *positional, **named):
     values from 'positional' and 'named'."""
     spec = getfullargspec(func)
     args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, ann = spec
-    f_name = func.__name__
+    f_name = func.name if hasattr(func,"name") else func.__name__
     arg2value = {}
 
     if args and args[0] == "self" and not positional:
         # if not positional or not  hasattr(positional[0],f_name):
-        instance = _get_missing_arg("self", func)
-        # implicit 'self' (or 'cls' for classmethods) argument
-        positional = (instance,) + positional
+        from qaf.automation.bdd2.model import Bdd2StepDefinition
+        if type(func) == Bdd2StepDefinition:
+            # no need to pass self
+            args.pop(0)
+        else:
+            instance = _get_missing_arg("self", func)
+            # implicit 'self' (or 'cls' for classmethods) argument
+            positional = (instance,) + positional
     num_pos = len(positional)
     num_args = len(args)
     if CONTEXT in args and num_pos + len(named) < num_args:
@@ -216,9 +221,9 @@ def _getcallargs(func, /, *positional, **named):
 def _get_missing_arg(argname, func):
     if "self" == argname:
         cls_qualname = get_func_declaring_class(func)
-        cls = get_class(cls_qualname)
+        cls = get_class(cls_qualname) if cls_qualname else None
         if cls is None:
-            instance = None
+            return None
         if hasattr(cls, FIXTURE_NAME) and cls.fixture_name:
             instance = _get_val_from_fixture(getattr(cls, FIXTURE_NAME), get_test_context())
         else:
