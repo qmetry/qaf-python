@@ -29,8 +29,8 @@ except FileNotFoundError:
 setup(name='qaf-python',
       version='1.0.0',
       description='This is Automation framework for Python developed by Infostretch',
-      author='Nishith Shah, Chirag Jayswal',
-      author_email='nshthshah@gmail.com',
+      authors='Nishith Shah, Chirag Jayswal',
+      author_email='nshthshah[at]gmail.com, cjayswal[at]gmail.com',
       license='MIT',
 
       # The project's main homepage.
@@ -38,7 +38,7 @@ setup(name='qaf-python',
 
       long_description=readme,
       long_description_content_type="text/markdown",
-      maintainer_email='nshthshah@gmail.com',
+      maintainer_email='cjayswal[at]gmail.com',
       entry_points={"pytest11": ["qaf = qaf.pytest.qaf_pytest_plugin"]},
       classifiers=[
           'Development Status :: 4 - Beta',
