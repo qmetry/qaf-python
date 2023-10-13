@@ -162,7 +162,7 @@ def __web_driver_manager(driver_name):
     driver_name_caps = str(driver_name.replace('firefox', 'gecko')).capitalize()
     class_name = f'webdriver_manager.{driver_name}.{driver_name_caps}DriverManager'
     driver_path = load_class(class_name)().install()
-    driver_path = driver_path.rsplit('/', 1)[0]
+    #driver_path = driver_path.rsplit('/', 1)[0]
     os.environ["PATH"] += os.pathsep + driver_path
     # load_class(class_name)
     return load_class('selenium.webdriver.{driver_name}.service.Service'.format(driver_name=driver_name))(driver_path)
