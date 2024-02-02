@@ -37,7 +37,7 @@ class StepRegistry:
         else:
             from qaf.automation.bdd2.model import Bdd2StepDefinition
             if type(step.func) == Bdd2StepDefinition:
-                step_location = FileLocation(step.func.parent.path, step.func.lineNo)
+                step_location = FileLocation(str(step.func.parent.path), step.func.lineNo)
             else:
                 step_location = Match.make_location(step.func)
             step_text = _text(step.description)
