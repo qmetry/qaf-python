@@ -139,13 +139,14 @@ def register_steps():
     import qaf.automation.step_def as step_def_path
     from qaf.automation.keys.application_properties import ApplicationProperties as AP
 
-    step_def_path = str(os.path.abspath(step_def_path.__file__)).replace('/__init__.py', '')
+    step_def_path = str(os.path.dirname(step_def_path.__file__))
+        #str(os.path.abspath(step_def_path.__file__)).replace(os.sep+'__init__.py', '')
 
     QAF_STEPS = [step_def_path]
     load_step_modules(QAF_STEPS)
     step_provider_pkgs = get_bundle().get_string(AP.STEP_PROVIDER_PKG)
     if step_provider_pkgs:
-        step_provider_pkg_list = step_provider_pkgs.replace('.', '/').split(";")
+        step_provider_pkg_list = step_provider_pkgs.replace('.', os.sep).split(";")
         load_step_modules(step_provider_pkg_list)
 
 
