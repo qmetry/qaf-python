@@ -22,14 +22,14 @@ class StatusCounter(object):
     @author: Chirag Jayswal
     """
     def __init__(self, name):
-        self.file = name
+        self.file = name.replace("\\","/")
         self._pass = 0
         self._fail = 0
         self._skip = 0
-        self.name = name
+        self.name = name.replace("\\","/")
 
     def with_file(self, file_name):
-        self.file = file_name
+        self.file = file_name.replace("\\","/")
         return self
 
     def add(self, status):

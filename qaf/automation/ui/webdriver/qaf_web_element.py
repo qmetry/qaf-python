@@ -84,6 +84,9 @@ class QAFWebElement(RemoteWebElement):
     def get_description(self, msg: Optional[str] = '') -> str:
         return msg if len(msg) > 0 else self.description
 
+    def is_displayed(self) -> bool:
+        return super(QAFWebElement, self).is_displayed() if self.is_present() else False
+
     def find_element(self, by: Optional[str] = By.ID, value: Optional[str] = None):
         web_element = super(QAFWebElement, self).find_element(by=by, value=value)
         qaf_web_element = QAFWebElement.create_instance_using_webelement(web_element)
