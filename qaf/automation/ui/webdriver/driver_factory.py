@@ -17,7 +17,6 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-import os
 import re
 from urllib import parse
 
@@ -160,9 +159,14 @@ def get_server_url() -> str:
 def __web_driver_manager(driver_name):
     driver_name = driver_name.replace('driver', '').replace('remote', '').lower()
     driver_name_caps = str(driver_name.replace('firefox', 'gecko')).capitalize()
-    class_name = f'webdriver_manager.{driver_name}.{driver_name_caps}DriverManager'
-    driver_path = load_class(class_name)().install()
-    #driver_path = driver_path.rsplit('/', 1)[0]
-    os.environ["PATH"] += os.pathsep + driver_path
-    # load_class(class_name)
+    driver_path = CM().get_bundle().get(f'webdriver..{driver_name}.driver')
+
+    if not driver_path:
+        class_name = f'webdriver_manager.{driver_name}.{driver_name_caps}DriverManager'
+        driver_path = load_class(class_name)().install()
+        #driver_path = driver_path.rsplit('/', 1)[0]
+        # os.environ["PATH"] += os.pathsep + driver_path
+        # load_class(class_name)
+        CM().get_bundle().set_property(f'webdriver..{driver_name}.driver',driver_path)
+
     return load_class('selenium.webdriver.{driver_name}.service.Service'.format(driver_name=driver_name))(driver_path)
